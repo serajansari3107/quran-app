@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e1a" id="theme-color-meta">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Al-Quran (Roman Urdu)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="screen">
+      <div class="top-bar">
+        <h1>Al-Quran</h1>
+        <p class="subtitle">114 surahs · offline</p>
+        <input id="search-box" type="text" placeholder="Search surah, or type 2:255 to jump to an ayah" oninput="filterSurahList()" onkeydown="if(event.key==='Enter') tryJumpFromSearch()">
+      </div>
+      <div id="continue-reading" class="hidden"></div>
+      <div id="ayah-of-day" class="hidden"></div>
+      <div class="list-toggle">
+        <button id="toggle-surah" class="toggle-btn active" onclick="setListMode('surah')">Surahs</button>
+        <button id="toggle-juz" class="toggle-btn" onclick="setListMode('juz')">Juz</button>
+      </div>
+      <div id="surah-list"></div>
+      <div id="juz-list" class="hidden"></div>
+    </div>
+
+    <!-- READING SCREEN -->
+    <div id="reading-screen" class="screen hidden">
+      <div class="top-bar reading-top-bar">
+        <button id="back-btn" onclick="showHomeScreen()">&#8592; Back</button>
+        <div class="reading-title-block">
+          <h2 id="reading-title"></h2>
+          <p id="reading-subtitle" class="subtitle"></p>
+        </div>
+        <button id="download-surah-btn" class="download-btn" onclick="openDownloadModal('surah')" title="Download this surah">&#11015;</button>
+      </div>
+      <div id="ayah-list"></div>
+    </div>
+
+    <!-- SALAH TIMES SCREEN -->
+    <div id="salah-screen" class="screen hidden">
+      <div class="top-bar">
+        <h1>Salah Times</h1>
+        <p class="subtitle" id="salah-date"></p>
+      </div>
+      <div class="salah-body">
+        <div id="salah-location-card" class="location-card">
+          <p id="salah-location-text" class="location-text">Location not set yet</p>
+          <input id="city-search-box" type="text" placeholder="Search an Indian city (e.g. Faridabad)" oninput="filterCityOptions()" onfocus="filterCityOptions()">
+          <div id="city-options" class="city-options hidden"></div>
+          <button onclick="detectLocation()">Or use my current GPS location</button>
+        </div>
+
+        <div id="salah-times-list"></div>
+
+        <div class="setting-row">
+          <label>Asr calculation (madhab)</label>
+          <div class="list-toggle">
+            <button id="asr-hanafi" class="toggle-btn active" onclick="setAsrMadhab('hanafi')">Hanafi</button>
+            <button id="asr-shafi" class="toggle-btn" onclick="setAsrMadhab('shafi')">Shafi (Standard)</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <label>Calculation method</label>
+          <div class="list-toggle">
+            <button id="calc-karachi" class="toggle-btn active" onclick="setCalcMethod('karachi')">Karachi</button>
+            <button id="calc-mwl" class="toggle-btn" onclick="setCalcMethod('mwl')">Muslim World League</button>
+            <button id="calc-ummalqura" class="toggle-btn" onclick="setCalcMethod('ummalqura')">Umm Al-Qura</button>
+          </div>
+        </div>
+
+        <p class="salah-note">Times are calculated on this device from your location and today's date -- no internet needed once your location is set. Treat them as a helpful estimate; check with your local masjid for exact iqamah timings.</p>
+      </div>
+    </div>
+
+    <!-- BOOKMARKS SCREEN -->
+    <div id="bookmarks-screen" class="screen hidden">
+      <div class="top-bar">
+        <h1>Bookmarks</h1>
+        <p class="subtitle">Ayahs you've starred</p>
+      </div>
+      <div id="bookmarks-list"></div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="settings-screen" class="screen hidden">
+      <div class="top-bar">
+        <h1>Settings</h1>
+        <p class="subtitle">Adjust text size</p>
+      </div>
+      <div class="settings-body">
+        <div class="setting-row">
+          <label>Download</label>
+          <button class="full-width-btn" onclick="openDownloadModal('full')">Download full Quran as HTML</button>
+        </div>
+        <div class="setting-row">
+          <label>Display mode</label>
+          <div class="list-toggle list-toggle-wrap">
+            <button id="display-both" class="toggle-btn active" onclick="setDisplayMode('both')">Both</button>
+            <button id="display-arabic" class="toggle-btn" onclick="setDisplayMode('arabic')">Arabic only</button>
+            <button id="display-translation" class="toggle-btn" onclick="setDisplayMode('translation')">Translation only</button>
+            <button id="display-transliteration" class="toggle-btn" onclick="setDisplayMode('transliteration')">Transliteration only</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Theme</label>
+          <div class="list-toggle">
+            <button id="theme-navy" class="toggle-btn active" onclick="setTheme('navy')">Midnight Navy</button>
+            <button id="theme-charcoal" class="toggle-btn" onclick="setTheme('charcoal')">Charcoal</button>
+            <button id="theme-sepia" class="toggle-btn" onclick="setTheme('sepia')">Sepia</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label for="arabic-size-slider">Arabic text size <span id="arabic-size-value"></span></label>
+          <input id="arabic-size-slider" type="range" min="14" max="30" step="1" oninput="onArabicSizeChange(this.value)">
+        </div>
+        <div class="setting-row">
+          <label for="translation-size-slider">Transliteration &amp; translation size <span id="translation-size-value"></span></label>
+          <input id="translation-size-slider" type="range" min="14" max="30" step="1" oninput="onTranslationSizeChange(this.value)">
+        </div>
+        <div class="setting-row">
+          <label>Transliteration style</label>
+          <div class="list-toggle">
+            <button id="translit-a" class="toggle-btn" onclick="setTransliterationStyle('a')">Style A</button>
+            <button id="translit-b" class="toggle-btn active" onclick="setTransliterationStyle('b')">Style B</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Translation language</label>
+          <div class="list-toggle">
+            <button id="lang-romanUrdu" class="toggle-btn active" onclick="setTranslationLanguage('romanUrdu')">Roman Urdu</button>
+            <button id="lang-english" class="toggle-btn" onclick="setTranslationLanguage('english')">English</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label>Arabic font style</label>
+          <div class="list-toggle">
+            <button id="font-nastaliq" class="toggle-btn active" onclick="setArabicFontStyle('nastaliq')">Nastaliq</button>
+            <button id="font-indopak" class="toggle-btn" onclick="setArabicFontStyle('indopak')">Indo-Pak</button>
+            <button id="font-uthmani" class="toggle-btn" onclick="setArabicFontStyle('uthmani')">Uthmani</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DOWNLOAD MODAL -->
+  <div id="download-modal" class="modal-overlay hidden" onclick="if(event.target===this) closeDownloadModal()">
+    <div class="modal-box">
+      <p class="modal-title" id="download-modal-title">Download</p>
+      <p class="modal-subtitle">Choose what to include</p>
+      <div class="modal-options">
+        <button onclick="confirmDownload('all')">Arabic + Transliteration + Translation</button>
+        <button onclick="confirmDownload('arabic')">Arabic only</button>
+        <button onclick="confirmDownload('translation')">Translation only</button>
+        <button onclick="confirmDownload('transliteration')">Transliteration only</button>
+      </div>
+      <button class="modal-cancel" onclick="closeDownloadModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <div class="nav-item active" data-target="home-screen" onclick="showScreen('home-screen')">
+      <div class="nav-icon">&#128214;</div>
+      <div class="nav-label">Read</div>
+    </div>
+    <div class="nav-item" data-target="bookmarks-screen" onclick="showScreen('bookmarks-screen')">
+      <div class="nav-icon">&#9733;</div>
+      <div class="nav-label">Bookmarks</div>
+    </div>
+    <div class="nav-item" data-target="salah-screen" onclick="showScreen('salah-screen')">
+      <div class="nav-icon">&#128336;</div>
+      <div class="nav-label">Salah</div>
+    </div>
+    <div class="nav-item" data-target="settings-screen" onclick="showScreen('settings-screen')">
+      <div class="nav-icon">&#9881;</div>
+      <div class="nav-label">Settings</div>
+    </div>
+  </div>
+
+  <!-- Load your Quran data files first -->
+  <script src="data/surah-list.js"></script>
+  <script src="data/juz-list.js"></script>
+  <script src="data/indian-cities.js"></script>
+  <script src="data/001-al-fatiha.js"></script>
+  <script src="data/002-al-baqarah.js"></script>
+  <script src="data/003-aal-e-imran.js"></script>
+  <script src="data/004-an-nisa.js"></script>
+  <script src="data/005-al-maidah.js"></script>
+  <script src="data/006-al-anam.js"></script>
+  <script src="data/007-al-araf.js"></script>
+  <script src="data/008-al-anfal.js"></script>
+  <script src="data/009-at-tawbah.js"></script>
+  <script src="data/010-yunus.js"></script>
+  <script src="data/011-hud.js"></script>
+  <script src="data/012-yusuf.js"></script>
+  <script src="data/013-ar-rad.js"></script>
+  <script src="data/014-ibrahim.js"></script>
+  <script src="data/015-al-hijr.js"></script>
+  <script src="data/016-an-nahl.js"></script>
+  <script src="data/017-al-isra.js"></script>
+  <script src="data/018-al-kahf.js"></script>
+  <script src="data/019-maryam.js"></script>
+  <script src="data/020-ta-ha.js"></script>
+  <script src="data/021-al-anbiya.js"></script>
+  <script src="data/022-al-hajj.js"></script>
+  <script src="data/023-al-muminun.js"></script>
+  <script src="data/024-an-nur.js"></script>
+  <script src="data/025-al-furqan.js"></script>
+  <script src="data/026-ash-shuara.js"></script>
+  <script src="data/027-an-naml.js"></script>
+  <script src="data/028-al-qasas.js"></script>
+  <script src="data/029-al-ankabut.js"></script>
+  <script src="data/030-ar-rum.js"></script>
+  <script src="data/031-luqman.js"></script>
+  <script src="data/032-as-sajdah.js"></script>
+  <script src="data/033-al-ahzab.js"></script>
+  <script src="data/034-saba.js"></script>
+  <script src="data/035-fatir.js"></script>
+  <script src="data/036-ya-sin.js"></script>
+  <script src="data/037-as-saffat.js"></script>
+  <script src="data/038-sad.js"></script>
+  <script src="data/039-az-zumar.js"></script>
+  <script src="data/040-ghafir.js"></script>
+  <script src="data/041-fussilat.js"></script>
+  <script src="data/042-ash-shura.js"></script>
+  <script src="data/043-az-zukhruf.js"></script>
+  <script src="data/044-ad-dukhan.js"></script>
+  <script src="data/045-al-jathiyah.js"></script>
+  <script src="data/046-al-ahqaf.js"></script>
+  <script src="data/047-muhammad.js"></script>
+  <script src="data/048-al-fath.js"></script>
+  <script src="data/049-al-hujurat.js"></script>
+  <script src="data/050-qaf.js"></script>
+  <script src="data/051-adh-dhariyat.js"></script>
+  <script src="data/052-at-tur.js"></script>
+  <script src="data/053-an-najm.js"></script>
+  <script src="data/054-al-qamar.js"></script>
+  <script src="data/055-ar-rahman.js"></script>
+  <script src="data/056-al-waqiah.js"></script>
+  <script src="data/057-al-hadid.js"></script>
+  <script src="data/058-al-mujadila.js"></script>
+  <script src="data/059-al-hashr.js"></script>
+  <script src="data/060-al-mumtahanah.js"></script>
+  <script src="data/061-as-saff.js"></script>
+  <script src="data/062-al-jumuah.js"></script>
+  <script src="data/063-al-munafiqun.js"></script>
+  <script src="data/064-at-taghabun.js"></script>
+  <script src="data/065-at-talaq.js"></script>
+  <script src="data/066-at-tahrim.js"></script>
+  <script src="data/067-al-mulk.js"></script>
+  <script src="data/068-al-qalam.js"></script>
+  <script src="data/069-al-haqqah.js"></script>
+  <script src="data/070-al-maarij.js"></script>
+  <script src="data/071-nuh.js"></script>
+  <script src="data/072-al-jinn.js"></script>
+  <script src="data/073-al-muzzammil.js"></script>
+  <script src="data/074-al-muddaththir.js"></script>
+  <script src="data/075-al-qiyamah.js"></script>
+  <script src="data/076-al-insan.js"></script>
+  <script src="data/077-al-mursalat.js"></script>
+  <script src="data/078-an-naba.js"></script>
+  <script src="data/079-an-naziat.js"></script>
+  <script src="data/080-abasa.js"></script>
+  <script src="data/081-at-takwir.js"></script>
+  <script src="data/082-al-infitar.js"></script>
+  <script src="data/083-al-mutaffifin.js"></script>
+  <script src="data/084-al-inshiqaq.js"></script>
+  <script src="data/085-al-buruj.js"></script>
+  <script src="data/086-at-tariq.js"></script>
+  <script src="data/087-al-ala.js"></script>
+  <script src="data/088-al-ghashiyah.js"></script>
+  <script src="data/089-al-fajr.js"></script>
+  <script src="data/090-al-balad.js"></script>
+  <script src="data/091-ash-shams.js"></script>
+  <script src="data/092-al-layl.js"></script>
+  <script src="data/093-ad-duha.js"></script>
+  <script src="data/094-ash-sharh.js"></script>
+  <script src="data/095-at-tin.js"></script>
+  <script src="data/096-al-alaq.js"></script>
+  <script src="data/097-al-qadr.js"></script>
+  <script src="data/098-al-bayyinah.js"></script>
+  <script src="data/099-az-zalzalah.js"></script>
+  <script src="data/100-al-adiyat.js"></script>
+  <script src="data/101-al-qariah.js"></script>
+  <script src="data/102-at-takathur.js"></script>
+  <script src="data/103-al-asr.js"></script>
+  <script src="data/104-al-humazah.js"></script>
+  <script src="data/105-al-fil.js"></script>
+  <script src="data/106-quraysh.js"></script>
+  <script src="data/107-al-maun.js"></script>
+  <script src="data/108-al-kawthar.js"></script>
+  <script src="data/109-al-kafirun.js"></script>
+  <script src="data/110-an-nasr.js"></script>
+  <script src="data/111-al-masad.js"></script>
+  <script src="data/112-al-ikhlas.js"></script>
+  <script src="data/113-al-falaq.js"></script>
+  <script src="data/114-an-nas.js"></script>
+
+  <!-- Load the app logic last -->
+  <script src="adhan.min.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
