@@ -66,7 +66,7 @@ function renderContinueReading() {
   }
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="continue-card" onclick="openSurah(' + lastRead.surah + ', ' + lastRead.ayah + ')">' +
+    '<div class="continue-card compact-card" onclick="openSurah(' + lastRead.surah + ', ' + lastRead.ayah + ')">' +
       '<p class="continue-label">Continue reading</p>' +
       '<p class="continue-title">' + meta.nameEnglish + ' &middot; Ayah ' + lastRead.ayah + '</p>' +
     '</div>';
@@ -76,6 +76,7 @@ function renderContinueReading() {
 
 let currentOpenSurah = null;
 let currentOpenJuz = null;
+let currentOpenHadithChapter = null;
 
 function buildReadingAyahCard(surahNumber, ayah, bookmarks, lang, translitStyle, displayMode) {
   const translitText = translitStyle === 'b' ? ayah.transliterationB : ayah.transliteration;
@@ -172,6 +173,7 @@ function openJuz(juzNumber) {
 function openSurah(number, scrollToAyah) {
   currentOpenSurah = number;
   currentOpenJuz = null;
+  currentSingleAyahView = null;
   document.getElementById('download-surah-btn').classList.remove('hidden');
   const meta = surahList.find(function (s) { return s.number === number; });
   const data = window['surah' + String(number).padStart(3, '0')]; // e.g. surah001
@@ -224,6 +226,8 @@ function toggleBookmark(surahNum, ayahNum) {
   saveJSON('bookmarks', bookmarks);
   if (currentOpenJuz) {
     openJuz(currentOpenJuz);
+  } else if (currentSingleAyahView) {
+    openSingleAyah(currentSingleAyahView.surah, currentSingleAyahView.ayah);
   } else {
     openSurah(surahNum); // re-render to update the star icon
   }
@@ -284,10 +288,10 @@ function onTranslationSizeChange(value) {
 // ---------- Screen + bottom nav switching ----------
 
 function showScreen(id) {
-  ['home-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen'].forEach(function (s) {
+  ['home-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen', 'hadith-home-screen', 'hadith-book-screen', 'hadith-reading-screen'].forEach(function (s) {
     document.getElementById(s).classList.toggle('hidden', s !== id);
   });
-  document.getElementById('bottom-nav').classList.toggle('hidden', id === 'reading-screen');
+  document.getElementById('bottom-nav').classList.toggle('hidden', id === 'reading-screen' || id === 'hadith-book-screen' || id === 'hadith-reading-screen');
   document.querySelectorAll('.nav-item').forEach(function (el) {
     el.classList.toggle('active', el.dataset.target === id);
   });
@@ -297,6 +301,10 @@ function showScreen(id) {
   }
   if (id === 'bookmarks-screen') renderBookmarksScreen();
   if (id === 'salah-screen') renderSalahScreen();
+  if (id === 'hadith-home-screen') {
+    renderContinueReadingHadith();
+    renderHadithOfDay();
+  }
 }
 
 function showHomeScreen() {
@@ -364,7 +372,36 @@ function tryJumpFromSearch() {
   }
   box.value = '';
   filterSurahList();
-  openSurah(surahNum, ayahNum);
+  openSingleAyah(surahNum, ayahNum);
+}
+
+let currentSingleAyahView = null; // { surah, ayah } when showing one isolated ayah
+
+function openSingleAyah(surahNum, ayahNum) {
+  const meta = surahList.find(function (s) { return s.number === surahNum; });
+  const data = window['surah' + String(surahNum).padStart(3, '0')];
+  const ayah = data.ayahs.find(function (a) { return a.number === ayahNum; });
+  if (!ayah) return;
+
+  currentOpenSurah = null;
+  currentOpenJuz = null;
+  currentSingleAyahView = { surah: surahNum, ayah: ayahNum };
+  document.getElementById('download-surah-btn').classList.add('hidden');
+
+  showScreen('reading-screen');
+  document.getElementById('reading-title').textContent = meta.nameEnglish + ', Ayah ' + ayahNum;
+  document.getElementById('reading-subtitle').textContent = meta.meaning;
+
+  const bookmarks = loadJSON('bookmarks', []);
+  const lang = loadJSON('translationLanguage', 'romanUrdu');
+  const translitStyle = loadJSON('transliterationStyle', 'b');
+  const displayMode = loadJSON('displayMode', 'both');
+
+  document.getElementById('ayah-list').innerHTML =
+    buildReadingAyahCard(surahNum, ayah, bookmarks, lang, translitStyle, displayMode);
+
+  saveJSON('lastRead', { surah: surahNum, ayah: ayahNum });
+  resetReadingScroll();
 }
 
 // ---------- Ayah of the Day ----------
@@ -402,7 +439,7 @@ function renderAyahOfDay() {
 
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="ayah-of-day-card" onclick="openSurah(' + chosenSurah + ', ' + chosenAyah + ')">' +
+    '<div class="ayah-of-day-card compact-card" onclick="openSingleAyah(' + chosenSurah + ', ' + chosenAyah + ')">' +
       '<p class="continue-label">Ayah of the day</p>' +
       '<p class="continue-title">' + meta.nameEnglish + ' \u00b7 Ayah ' + chosenAyah + '</p>' +
     '</div>';
@@ -509,6 +546,280 @@ function confirmDownload(mode) {
   }
 
   closeDownloadModal();
+}
+
+// ---------- Hadith (Sahih al-Bukhari / Sahih Muslim) ----------
+
+let currentHadithBook = 'bukhari';
+
+const HADITH_BOOKS = {
+  bukhari: {
+    label: 'Sahih al-Bukhari',
+    list: function () { return hadithBookList; },
+    varPrefix: 'hadithChapter',
+    chapterCount: 97
+  },
+  muslim: {
+    label: 'Sahih Muslim',
+    list: function () { return muslimBookList; },
+    varPrefix: 'muslimChapter',
+    chapterCount: 57
+  }
+};
+
+function openHadithBook(book) {
+  currentHadithBook = book;
+  const info = HADITH_BOOKS[book];
+  showScreen('hadith-book-screen');
+  document.getElementById('hadith-book-title').textContent = info.label;
+  document.getElementById('hadith-book-subtitle').textContent = info.chapterCount + ' chapters \u00b7 offline';
+  document.getElementById('hadith-search-box').value = '';
+  renderHadithBookList(info.list());
+}
+
+function renderHadithBookList(list) {
+  const container = document.getElementById('hadith-book-list');
+  container.innerHTML = list.map(function (c) {
+    return (
+      '<div class="surah-row" onclick="openHadithChapter(' + c.chapterId + ')">' +
+        '<div class="surah-number">' + c.chapterId + '</div>' +
+        '<div class="surah-info">' +
+          '<p class="name">' + c.englishTitle + '</p>' +
+          '<p class="meta">Hadith ' + c.firstNumber + '\u2013' + c.lastNumber + ' &middot; ' + c.hadithCount + ' hadiths</p>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function filterHadithBookList() {
+  const query = document.getElementById('hadith-search-box').value.toLowerCase();
+  const fullList = HADITH_BOOKS[currentHadithBook].list();
+  const filtered = fullList.filter(function (c) {
+    return c.englishTitle.toLowerCase().indexOf(query) !== -1 || String(c.chapterId).indexOf(query) !== -1;
+  });
+  renderHadithBookList(filtered);
+}
+
+let currentHadithNumberView = null; // { book, number } when showing a single searched hadith
+
+function searchHadithByNumber() {
+  const raw = document.getElementById('hadith-number-search-box').value.trim();
+  const num = Number(raw);
+
+  if (!raw || !Number.isInteger(num) || num < 1) {
+    alert('Type a whole hadith number, e.g. 700');
+    return;
+  }
+
+  const info = HADITH_BOOKS[currentHadithBook];
+  const fullList = info.list();
+  const maxNumber = fullList.reduce(function (max, c) { return Math.max(max, c.lastNumber); }, 0);
+
+  if (num > maxNumber) {
+    alert(info.label + ' only has ' + maxNumber + ' hadiths.');
+    return;
+  }
+
+  const chapter = fullList.find(function (c) { return num >= c.firstNumber && num <= c.lastNumber; });
+  if (!chapter) {
+    alert('Could not find that hadith. Please try a different number.');
+    return;
+  }
+
+  const data = window[info.varPrefix + String(chapter.chapterId).padStart(3, '0')];
+  const hadith = data.hadiths.find(function (h) { return h.number === num; });
+  if (!hadith) {
+    alert('Could not find that hadith. Please try a different number.');
+    return;
+  }
+
+  currentHadithNumberView = { book: currentHadithBook, number: num };
+  currentOpenHadithChapter = null;
+  document.getElementById('hadith-number-search-box').value = '';
+  renderSingleHadithView(chapter, hadith, info);
+}
+
+function renderSingleHadithView(chapter, hadith, info) {
+  showScreen('hadith-reading-screen');
+  document.getElementById('hadith-reading-title').textContent = 'Hadith ' + hadith.number;
+  document.getElementById('hadith-reading-subtitle').textContent = info.label + ' \u00b7 ' + chapter.englishTitle;
+
+  const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
+  const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
+
+  document.getElementById('hadith-list').innerHTML =
+    '<div class="ayah-card">' +
+      '<p class="ayah-number">Hadith ' + hadith.number + '</p>' +
+      (hadith.narrator ? '<p class="hadith-narrator">' + hadith.narrator + '</p>' : '') +
+      arabicBlock +
+      '<p class="hadith-english-text">' + hadith.english + '</p>' +
+    '</div>';
+
+  if (currentHadithNumberView) {
+    saveJSON('hadithLastRead', { book: currentHadithNumberView.book, number: hadith.number });
+  }
+
+  resetReadingScroll();
+}
+
+function openHadithChapter(chapterId) {
+  currentOpenHadithChapter = chapterId;
+  currentHadithNumberView = null;
+  const info = HADITH_BOOKS[currentHadithBook];
+  const meta = info.list().find(function (c) { return c.chapterId === chapterId; });
+  const data = window[info.varPrefix + String(chapterId).padStart(3, '0')];
+
+  showScreen('hadith-reading-screen');
+  document.getElementById('hadith-reading-title').textContent = meta.englishTitle;
+  document.getElementById('hadith-reading-subtitle').textContent = info.label + ' \u00b7 ' + meta.hadithCount + ' hadiths';
+
+  const list = document.getElementById('hadith-list');
+
+  if (!data) {
+    list.innerHTML = '<div class="empty-state"><p>This chapter\'s data is not available yet.</p></div>';
+    return;
+  }
+
+  const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
+
+  saveJSON('hadithLastRead', { book: currentHadithBook, number: meta.firstNumber });
+
+  list.innerHTML = data.hadiths.map(function (h) {
+    const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + h.arabic + '</p>';
+    return (
+      '<div class="ayah-card">' +
+        '<p class="ayah-number">Hadith ' + h.number + '</p>' +
+        (h.narrator ? '<p class="hadith-narrator">' + h.narrator + '</p>' : '') +
+        arabicBlock +
+        '<p class="hadith-english-text">' + h.english + '</p>' +
+      '</div>'
+    );
+  }).join('');
+
+  resetReadingScroll();
+}
+
+// ---------- Hadith settings: display mode + font sizes ----------
+
+function setHadithDisplayMode(mode) {
+  saveJSON('hadithDisplayMode', mode);
+  applyHadithDisplayMode();
+  if (currentHadithNumberView) {
+    searchHadithByNumberRerender();
+  } else if (currentOpenHadithChapter) {
+    openHadithChapter(currentOpenHadithChapter);
+  }
+}
+
+function searchHadithByNumberRerender() {
+  const info = HADITH_BOOKS[currentHadithNumberView.book];
+  const num = currentHadithNumberView.number;
+  const fullList = info.list();
+  const chapter = fullList.find(function (c) { return num >= c.firstNumber && num <= c.lastNumber; });
+  const data = window[info.varPrefix + String(chapter.chapterId).padStart(3, '0')];
+  const hadith = data.hadiths.find(function (h) { return h.number === num; });
+  renderSingleHadithView(chapter, hadith, info);
+}
+
+function applyHadithDisplayMode() {
+  const mode = loadJSON('hadithDisplayMode', 'english');
+  document.getElementById('hadith-display-both').classList.toggle('active', mode === 'both');
+  document.getElementById('hadith-display-english').classList.toggle('active', mode === 'english');
+}
+
+function applyHadithFontSizes() {
+  const arabicSize = loadJSON('hadithArabicFontSize', 22);
+  const englishSize = loadJSON('hadithEnglishFontSize', 15);
+  document.documentElement.style.setProperty('--hadith-arabic-font-size', arabicSize + 'px');
+  document.documentElement.style.setProperty('--hadith-english-font-size', englishSize + 'px');
+  document.getElementById('hadith-arabic-size-value').textContent = arabicSize + 'px';
+  document.getElementById('hadith-english-size-value').textContent = englishSize + 'px';
+  document.getElementById('hadith-arabic-size-slider').value = arabicSize;
+  document.getElementById('hadith-english-size-slider').value = englishSize;
+}
+
+function onHadithArabicSizeChange(value) {
+  saveJSON('hadithArabicFontSize', Number(value));
+  applyHadithFontSizes();
+}
+
+function onHadithEnglishSizeChange(value) {
+  saveJSON('hadithEnglishFontSize', Number(value));
+  applyHadithFontSizes();
+}
+
+// ---------- Hadith: Continue Reading ----------
+
+function renderContinueReadingHadith() {
+  const box = document.getElementById('hadith-continue-reading');
+  const lastRead = loadJSON('hadithLastRead', null);
+  if (!lastRead) {
+    box.classList.add('hidden');
+    box.innerHTML = '';
+    return;
+  }
+  const info = HADITH_BOOKS[lastRead.book];
+  box.classList.remove('hidden');
+  box.innerHTML =
+    '<div class="continue-card compact-card" onclick="openHadithOfDay(\'' + lastRead.book + '\', ' + lastRead.number + ')">' +
+      '<p class="continue-label">Continue reading</p>' +
+      '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + lastRead.number + '</p>' +
+    '</div>';
+}
+
+// ---------- Hadith of the Day ----------
+
+function renderHadithOfDay() {
+  const box = document.getElementById('hadith-of-day');
+
+  const bukhariTotal = hadithBookList.reduce(function (s, c) { return s + c.hadithCount; }, 0);
+  const muslimTotal = muslimBookList.reduce(function (s, c) { return s + c.hadithCount; }, 0);
+  const combinedTotal = bukhariTotal + muslimTotal;
+
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - startOfYear) / 86400000);
+  const targetIndex = dayOfYear % combinedTotal;
+
+  let book, num;
+  if (targetIndex < bukhariTotal) {
+    book = 'bukhari';
+    num = targetIndex + 1;
+  } else {
+    book = 'muslim';
+    num = (targetIndex - bukhariTotal) + 1;
+  }
+
+  const info = HADITH_BOOKS[book];
+  const chapter = info.list().find(function (c) { return num >= c.firstNumber && num <= c.lastNumber; });
+  if (!chapter) {
+    box.classList.add('hidden');
+    return;
+  }
+
+  box.classList.remove('hidden');
+  box.innerHTML =
+    '<div class="hadith-of-day-card compact-card" onclick="openHadithOfDay(\'' + book + '\', ' + num + ')">' +
+      '<p class="continue-label">Hadith of the day</p>' +
+      '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + num + '</p>' +
+    '</div>';
+}
+
+function openHadithOfDay(book, num) {
+  const info = HADITH_BOOKS[book];
+  const fullList = info.list();
+  const chapter = fullList.find(function (c) { return num >= c.firstNumber && num <= c.lastNumber; });
+  const data = window[info.varPrefix + String(chapter.chapterId).padStart(3, '0')];
+  const hadith = data.hadiths.find(function (h) { return h.number === num; });
+
+  // Prepare the chapter-list screen underneath first, so the Back button
+  // from the reading screen lands somewhere populated, not blank.
+  openHadithBook(book);
+
+  currentHadithNumberView = { book: book, number: num };
+  currentOpenHadithChapter = null;
+  renderSingleHadithView(chapter, hadith, info);
 }
 
 // ---------- Salah Times ----------
@@ -655,7 +966,9 @@ function setCalcMethod(value) {
 function setDisplayMode(mode) {
   saveJSON('displayMode', mode);
   applyDisplayMode();
-  if (currentOpenSurah) {
+  if (currentSingleAyahView) {
+    openSingleAyah(currentSingleAyahView.surah, currentSingleAyahView.ayah);
+  } else if (currentOpenSurah) {
     openSurah(currentOpenSurah);
   }
 }
@@ -700,7 +1013,9 @@ function applyTheme() {
 function setTransliterationStyle(style) {
   saveJSON('transliterationStyle', style);
   applyTransliterationStyle();
-  if (currentOpenSurah) {
+  if (currentSingleAyahView) {
+    openSingleAyah(currentSingleAyahView.surah, currentSingleAyahView.ayah);
+  } else if (currentOpenSurah) {
     openSurah(currentOpenSurah);
   }
 }
@@ -716,7 +1031,9 @@ function applyTransliterationStyle() {
 function setTranslationLanguage(lang) {
   saveJSON('translationLanguage', lang);
   applyTranslationLanguage();
-  if (currentOpenSurah) {
+  if (currentSingleAyahView) {
+    openSingleAyah(currentSingleAyahView.surah, currentSingleAyahView.ayah);
+  } else if (currentOpenSurah) {
     openSurah(currentOpenSurah); // re-render the open surah with the new language
   }
 }
@@ -766,6 +1083,8 @@ applyArabicFontStyle();
 applyTranslationLanguage();
 applyTransliterationStyle();
 applyDisplayMode();
+applyHadithDisplayMode();
+applyHadithFontSizes();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {

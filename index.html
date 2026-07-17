@@ -81,6 +81,55 @@
       </div>
     </div>
 
+    <!-- HADITH HOME SCREEN (choose a book) -->
+    <div id="hadith-home-screen" class="screen hidden">
+      <div class="top-bar">
+        <h1>Hadith</h1>
+        <p class="subtitle">Choose a collection &middot; offline</p>
+      </div>
+      <div id="hadith-continue-reading" class="hidden"></div>
+      <div id="hadith-of-day" class="hidden"></div>
+      <div class="hadith-book-choice">
+        <div class="continue-card" onclick="openHadithBook('bukhari')">
+          <p class="continue-label">Sahih al-Bukhari</p>
+          <p class="continue-title">97 chapters &middot; 7,277 hadiths</p>
+        </div>
+        <div class="continue-card" onclick="openHadithBook('muslim')">
+          <p class="continue-label">Sahih Muslim</p>
+          <p class="continue-title">57 chapters &middot; 7,459 hadiths</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HADITH BOOK SCREEN (chapter list for the chosen book) -->
+    <div id="hadith-book-screen" class="screen hidden">
+      <div class="top-bar reading-top-bar">
+        <button id="hadith-book-back-btn" onclick="showScreen('hadith-home-screen')">&#8592; Back</button>
+        <div class="reading-title-block">
+          <h2 id="hadith-book-title"></h2>
+          <p id="hadith-book-subtitle" class="subtitle"></p>
+        </div>
+      </div>
+      <input id="hadith-search-box" type="text" placeholder="Search chapter name" oninput="filterHadithBookList()">
+      <div class="hadith-number-search-row">
+        <input id="hadith-number-search-box" type="text" placeholder="Search by hadith number, e.g. 700" onkeydown="if(event.key==='Enter') searchHadithByNumber()">
+        <button onclick="searchHadithByNumber()">Go</button>
+      </div>
+      <div id="hadith-book-list"></div>
+    </div>
+
+    <!-- HADITH READING SCREEN -->
+    <div id="hadith-reading-screen" class="screen hidden">
+      <div class="top-bar reading-top-bar">
+        <button id="hadith-back-btn" onclick="showScreen('hadith-book-screen')">&#8592; Back</button>
+        <div class="reading-title-block">
+          <h2 id="hadith-reading-title"></h2>
+          <p id="hadith-reading-subtitle" class="subtitle"></p>
+        </div>
+      </div>
+      <div id="hadith-list"></div>
+    </div>
+
     <!-- BOOKMARKS SCREEN -->
     <div id="bookmarks-screen" class="screen hidden">
       <div class="top-bar">
@@ -148,6 +197,24 @@
             <button id="font-uthmani" class="toggle-btn" onclick="setArabicFontStyle('uthmani')">Uthmani</button>
           </div>
         </div>
+
+        <p class="settings-section-heading">Hadith</p>
+
+        <div class="setting-row">
+          <label>Display mode</label>
+          <div class="list-toggle">
+            <button id="hadith-display-both" class="toggle-btn" onclick="setHadithDisplayMode('both')">Arabic + English</button>
+            <button id="hadith-display-english" class="toggle-btn active" onclick="setHadithDisplayMode('english')">English only</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label for="hadith-arabic-size-slider">Hadith Arabic text size <span id="hadith-arabic-size-value"></span></label>
+          <input id="hadith-arabic-size-slider" type="range" min="14" max="30" step="1" oninput="onHadithArabicSizeChange(this.value)">
+        </div>
+        <div class="setting-row">
+          <label for="hadith-english-size-slider">Hadith English text size <span id="hadith-english-size-value"></span></label>
+          <input id="hadith-english-size-slider" type="range" min="14" max="30" step="1" oninput="onHadithEnglishSizeChange(this.value)">
+        </div>
       </div>
     </div>
 
@@ -174,6 +241,10 @@
       <div class="nav-icon">&#128214;</div>
       <div class="nav-label">Read</div>
     </div>
+    <div class="nav-item" data-target="hadith-home-screen" onclick="showScreen('hadith-home-screen')">
+      <div class="nav-icon">&#128220;</div>
+      <div class="nav-label">Hadith</div>
+    </div>
     <div class="nav-item" data-target="bookmarks-screen" onclick="showScreen('bookmarks-screen')">
       <div class="nav-icon">&#9733;</div>
       <div class="nav-label">Bookmarks</div>
@@ -192,6 +263,162 @@
   <script src="data/surah-list.js"></script>
   <script src="data/juz-list.js"></script>
   <script src="data/indian-cities.js"></script>
+  <script src="data/hadith-book-list.js"></script>
+  <script src="data/muslim-book-list.js"></script>
+  <script src="data/hadith/muslim-000.js"></script>
+  <script src="data/hadith/muslim-001.js"></script>
+  <script src="data/hadith/muslim-002.js"></script>
+  <script src="data/hadith/muslim-003.js"></script>
+  <script src="data/hadith/muslim-004.js"></script>
+  <script src="data/hadith/muslim-005.js"></script>
+  <script src="data/hadith/muslim-006.js"></script>
+  <script src="data/hadith/muslim-007.js"></script>
+  <script src="data/hadith/muslim-008.js"></script>
+  <script src="data/hadith/muslim-009.js"></script>
+  <script src="data/hadith/muslim-010.js"></script>
+  <script src="data/hadith/muslim-011.js"></script>
+  <script src="data/hadith/muslim-012.js"></script>
+  <script src="data/hadith/muslim-013.js"></script>
+  <script src="data/hadith/muslim-014.js"></script>
+  <script src="data/hadith/muslim-015.js"></script>
+  <script src="data/hadith/muslim-016.js"></script>
+  <script src="data/hadith/muslim-017.js"></script>
+  <script src="data/hadith/muslim-018.js"></script>
+  <script src="data/hadith/muslim-019.js"></script>
+  <script src="data/hadith/muslim-020.js"></script>
+  <script src="data/hadith/muslim-021.js"></script>
+  <script src="data/hadith/muslim-022.js"></script>
+  <script src="data/hadith/muslim-023.js"></script>
+  <script src="data/hadith/muslim-024.js"></script>
+  <script src="data/hadith/muslim-025.js"></script>
+  <script src="data/hadith/muslim-026.js"></script>
+  <script src="data/hadith/muslim-027.js"></script>
+  <script src="data/hadith/muslim-028.js"></script>
+  <script src="data/hadith/muslim-029.js"></script>
+  <script src="data/hadith/muslim-030.js"></script>
+  <script src="data/hadith/muslim-031.js"></script>
+  <script src="data/hadith/muslim-032.js"></script>
+  <script src="data/hadith/muslim-033.js"></script>
+  <script src="data/hadith/muslim-034.js"></script>
+  <script src="data/hadith/muslim-035.js"></script>
+  <script src="data/hadith/muslim-036.js"></script>
+  <script src="data/hadith/muslim-037.js"></script>
+  <script src="data/hadith/muslim-038.js"></script>
+  <script src="data/hadith/muslim-039.js"></script>
+  <script src="data/hadith/muslim-040.js"></script>
+  <script src="data/hadith/muslim-041.js"></script>
+  <script src="data/hadith/muslim-042.js"></script>
+  <script src="data/hadith/muslim-043.js"></script>
+  <script src="data/hadith/muslim-044.js"></script>
+  <script src="data/hadith/muslim-045.js"></script>
+  <script src="data/hadith/muslim-046.js"></script>
+  <script src="data/hadith/muslim-047.js"></script>
+  <script src="data/hadith/muslim-048.js"></script>
+  <script src="data/hadith/muslim-049.js"></script>
+  <script src="data/hadith/muslim-050.js"></script>
+  <script src="data/hadith/muslim-051.js"></script>
+  <script src="data/hadith/muslim-052.js"></script>
+  <script src="data/hadith/muslim-053.js"></script>
+  <script src="data/hadith/muslim-054.js"></script>
+  <script src="data/hadith/muslim-055.js"></script>
+  <script src="data/hadith/muslim-056.js"></script>
+  <script src="data/hadith/bukhari-001.js"></script>
+  <script src="data/hadith/bukhari-002.js"></script>
+  <script src="data/hadith/bukhari-003.js"></script>
+  <script src="data/hadith/bukhari-004.js"></script>
+  <script src="data/hadith/bukhari-005.js"></script>
+  <script src="data/hadith/bukhari-006.js"></script>
+  <script src="data/hadith/bukhari-007.js"></script>
+  <script src="data/hadith/bukhari-008.js"></script>
+  <script src="data/hadith/bukhari-009.js"></script>
+  <script src="data/hadith/bukhari-010.js"></script>
+  <script src="data/hadith/bukhari-011.js"></script>
+  <script src="data/hadith/bukhari-012.js"></script>
+  <script src="data/hadith/bukhari-013.js"></script>
+  <script src="data/hadith/bukhari-014.js"></script>
+  <script src="data/hadith/bukhari-015.js"></script>
+  <script src="data/hadith/bukhari-016.js"></script>
+  <script src="data/hadith/bukhari-017.js"></script>
+  <script src="data/hadith/bukhari-018.js"></script>
+  <script src="data/hadith/bukhari-019.js"></script>
+  <script src="data/hadith/bukhari-020.js"></script>
+  <script src="data/hadith/bukhari-021.js"></script>
+  <script src="data/hadith/bukhari-022.js"></script>
+  <script src="data/hadith/bukhari-023.js"></script>
+  <script src="data/hadith/bukhari-024.js"></script>
+  <script src="data/hadith/bukhari-025.js"></script>
+  <script src="data/hadith/bukhari-026.js"></script>
+  <script src="data/hadith/bukhari-027.js"></script>
+  <script src="data/hadith/bukhari-028.js"></script>
+  <script src="data/hadith/bukhari-029.js"></script>
+  <script src="data/hadith/bukhari-030.js"></script>
+  <script src="data/hadith/bukhari-031.js"></script>
+  <script src="data/hadith/bukhari-032.js"></script>
+  <script src="data/hadith/bukhari-033.js"></script>
+  <script src="data/hadith/bukhari-034.js"></script>
+  <script src="data/hadith/bukhari-035.js"></script>
+  <script src="data/hadith/bukhari-036.js"></script>
+  <script src="data/hadith/bukhari-037.js"></script>
+  <script src="data/hadith/bukhari-038.js"></script>
+  <script src="data/hadith/bukhari-039.js"></script>
+  <script src="data/hadith/bukhari-040.js"></script>
+  <script src="data/hadith/bukhari-041.js"></script>
+  <script src="data/hadith/bukhari-042.js"></script>
+  <script src="data/hadith/bukhari-043.js"></script>
+  <script src="data/hadith/bukhari-044.js"></script>
+  <script src="data/hadith/bukhari-045.js"></script>
+  <script src="data/hadith/bukhari-046.js"></script>
+  <script src="data/hadith/bukhari-047.js"></script>
+  <script src="data/hadith/bukhari-048.js"></script>
+  <script src="data/hadith/bukhari-049.js"></script>
+  <script src="data/hadith/bukhari-050.js"></script>
+  <script src="data/hadith/bukhari-051.js"></script>
+  <script src="data/hadith/bukhari-052.js"></script>
+  <script src="data/hadith/bukhari-053.js"></script>
+  <script src="data/hadith/bukhari-054.js"></script>
+  <script src="data/hadith/bukhari-055.js"></script>
+  <script src="data/hadith/bukhari-056.js"></script>
+  <script src="data/hadith/bukhari-057.js"></script>
+  <script src="data/hadith/bukhari-058.js"></script>
+  <script src="data/hadith/bukhari-059.js"></script>
+  <script src="data/hadith/bukhari-060.js"></script>
+  <script src="data/hadith/bukhari-061.js"></script>
+  <script src="data/hadith/bukhari-062.js"></script>
+  <script src="data/hadith/bukhari-063.js"></script>
+  <script src="data/hadith/bukhari-064.js"></script>
+  <script src="data/hadith/bukhari-065.js"></script>
+  <script src="data/hadith/bukhari-066.js"></script>
+  <script src="data/hadith/bukhari-067.js"></script>
+  <script src="data/hadith/bukhari-068.js"></script>
+  <script src="data/hadith/bukhari-069.js"></script>
+  <script src="data/hadith/bukhari-070.js"></script>
+  <script src="data/hadith/bukhari-071.js"></script>
+  <script src="data/hadith/bukhari-072.js"></script>
+  <script src="data/hadith/bukhari-073.js"></script>
+  <script src="data/hadith/bukhari-074.js"></script>
+  <script src="data/hadith/bukhari-075.js"></script>
+  <script src="data/hadith/bukhari-076.js"></script>
+  <script src="data/hadith/bukhari-077.js"></script>
+  <script src="data/hadith/bukhari-078.js"></script>
+  <script src="data/hadith/bukhari-079.js"></script>
+  <script src="data/hadith/bukhari-080.js"></script>
+  <script src="data/hadith/bukhari-081.js"></script>
+  <script src="data/hadith/bukhari-082.js"></script>
+  <script src="data/hadith/bukhari-083.js"></script>
+  <script src="data/hadith/bukhari-084.js"></script>
+  <script src="data/hadith/bukhari-085.js"></script>
+  <script src="data/hadith/bukhari-086.js"></script>
+  <script src="data/hadith/bukhari-087.js"></script>
+  <script src="data/hadith/bukhari-088.js"></script>
+  <script src="data/hadith/bukhari-089.js"></script>
+  <script src="data/hadith/bukhari-090.js"></script>
+  <script src="data/hadith/bukhari-091.js"></script>
+  <script src="data/hadith/bukhari-092.js"></script>
+  <script src="data/hadith/bukhari-093.js"></script>
+  <script src="data/hadith/bukhari-094.js"></script>
+  <script src="data/hadith/bukhari-095.js"></script>
+  <script src="data/hadith/bukhari-096.js"></script>
+  <script src="data/hadith/bukhari-097.js"></script>
   <script src="data/001-al-fatiha.js"></script>
   <script src="data/002-al-baqarah.js"></script>
   <script src="data/003-aal-e-imran.js"></script>

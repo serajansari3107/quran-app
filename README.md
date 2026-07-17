@@ -285,3 +285,150 @@ The result is a single, self-contained HTML file (works in any browser, no
 internet or app needed to open it later) using your current transliteration
 style and translation language settings. A full-Quran "all content" download
 is roughly 5-6 MB; single-content downloads are much smaller.
+
+## 17. Hadith section: Sahih al-Bukhari (new)
+
+New "Hadith" tab in the bottom nav, alongside Read/Bookmarks/Salah/Settings.
+
+- All **7,277 hadiths, 97 chapters** of Sahih al-Bukhari, Arabic + English,
+  sourced from a structured dataset (scraped from Sunnah.com, cross-checked:
+  chapter-by-chapter counts sum to exactly 7,277).
+- Tap a chapter to read every hadith in it -- Arabic text, narrator, and
+  translation, same visual style as the Quran reading screen.
+- **Roman Urdu is not included for Hadith yet** -- unlike the Quran, no
+  clean structured Roman Urdu hadith dataset exists publicly (only PDFs/
+  scanned books), so the field was removed rather than shipped empty.
+  Currently shows Arabic + English only. If/when you want to add Roman Urdu
+  later, tell me and I'll add the field back in and wire it up the same way
+  as the Quran.
+- Adds about 13 MB to the app's offline storage (all 97 chapter files
+  bundled and cached, same as your Quran data).
+
+Data file structure: `data/hadith/bukhari-001.js` through `bukhari-097.js`
+(one per chapter/book), plus `data/hadith-book-list.js` as the index driving
+the Hadith home screen list. Same editing pattern as Quran surahs -- open a
+chapter file, find the hadith by `idInBook`, fill in `romanUrdu` between the
+quotes, save.
+
+## 18. Sahih Muslim added (new)
+
+The Hadith tab now has a **Sahih al-Bukhari / Sahih Muslim** toggle at the
+top -- tap to switch which book's chapter list you're browsing.
+
+- **Sahih Muslim**: 57 chapters, 7,459 hadiths, Arabic + English, same
+  source and quality as Bukhari.
+- One honest note on the data: chapter 0 ("Al-Muqaddimah" / Introduction,
+  91 hadiths) was missing its own file in the source dataset -- verified
+  this by cross-checking against the book's own total count, then
+  reconstructed it correctly from the complete-book file. Confirmed the
+  final total matches exactly (7,459/7,459), so nothing is missing.
+- Same Arabic + English only for now, same reasoning as Bukhari (no clean
+  structured Roman Urdu hadith dataset exists yet).
+
+Data files: `data/hadith/muslim-000.js` through `muslim-056.js`, plus
+`data/muslim-book-list.js` as the index. Adds roughly another 13 MB to
+offline storage, same caching approach as everything else.
+
+## 19. Hadith flow restructured (new)
+
+Hadith tab is now a proper 3-step flow instead of one crowded screen:
+1. **Hadith tab** -- choose Sahih al-Bukhari or Sahih Muslim (two cards)
+2. **Book screen** -- search/browse that book's chapters
+3. **Reading screen** -- read the hadiths in that chapter
+
+Back buttons go one level up at a time (reading -> chapters -> book choice),
+same navigation feel as Surah reading.
+
+## 20. Fixed: real sequential hadith numbering (bug fix)
+
+**The bug:** every chapter was showing "Hadith 1, 2, 3..." starting fresh,
+instead of the real, continuous numbering used in printed Sahih Bukhari/
+Muslim (e.g. real hadith #1543 was showing as "Hadith 12" because it was
+the 12th hadith in its chapter).
+
+**Root cause:** the per-chapter data source I originally used had a field
+literally named `idInBook` that actually reset every chapter -- a naming
+inconsistency in that specific part of the source dataset. The *full-book*
+version of the same dataset has correct global numbering.
+
+**The fix:** rebuilt every chapter file for both Bukhari and Muslim directly
+from the full-book source (which verified as perfectly sequential, 1 to
+7,277 with zero gaps/duplicates for Bukhari), instead of the per-chapter
+endpoint. Chapter list now also shows each chapter's real hadith range
+(e.g. "Hadith 8-58") so you can see at a glance where you are in the book.
+
+**Bonus fix while rebuilding:** Sahih Muslim's "Introduction" chapter is
+numbered 7369-7459 in this dataset (i.e. last, not first) -- a quirk of the
+source numbering, not something I introduced. Reordered both book's chapter
+lists by real hadith sequence rather than raw chapter ID, so what you see
+now matches true reading order.
+
+## 21. Hadith settings: display mode + font size (new)
+
+Settings screen now has a "Hadith" section (below the Quran settings):
+- **Display mode**: Arabic + English (default) or English only
+- **Hadith Arabic text size** and **Hadith English text size** -- independent
+  sliders, separate from your Quran font size settings, remembered per device
+
+Changing either while a chapter is open updates it immediately.
+
+## 22. Search by hadith number (new)
+
+On either book's chapter screen (Sahih al-Bukhari or Sahih Muslim), there's
+now a "Search by hadith number" box below the chapter name search. Type a
+number (e.g. 700) and tap Go -- it finds exactly which chapter that hadith
+belongs to and shows **only that one hadith**, not the rest of the chapter.
+
+Tested with real data: Bukhari hadith 700 correctly isolated from the other
+265 hadiths in its chapter (Call to Prayers); same confirmed for Muslim.
+Works for both books independently, using whichever real-numbering fix was
+verified in the previous update.
+
+## 23. Four requested changes (new)
+
+**1. Hadith grading (Sahih/Hasan/Da'if) -- deliberately NOT added.** Sahih
+al-Bukhari and Sahih Muslim only contain hadiths already classified as
+Sahih (authentic) by their compilers -- that's what "Sahih" in the title
+means. There's no per-hadith grade to show for these two collections
+specifically (grading matters for books like Sunan Abu Dawud/Tirmidhi that
+mix authenticity levels). Didn't want to add a fabricated or misleading
+field for something with real religious accuracy implications.
+
+**2. English only is now the default** for Hadith display mode. Switch to
+Arabic + English anytime in Settings.
+
+**3. Quran ayah search and Ayah of the Day now show only that single ayah**
+-- not the whole surah -- matching the Hadith number search behavior.
+Tested across several ayahs to confirm only the requested ayah renders.
+
+**4. Hadith of the Day** -- new card on the Hadith tab's book-choice screen,
+alongside the existing book picker. Rotates daily across both books
+combined (14,736 hadiths total), tap to read that one hadith. Verified the
+day-index math correctly handles the Bukhari-to-Muslim boundary and the
+very last hadith in the combined pool.
+
+## 24. Fixed: Hadith of the Day back button (bug fix)
+
+**The bug:** tapping Hadith of the Day jumped straight to the single-hadith
+view without ever populating the chapter-list screen behind it, so hitting
+Back showed a blank screen, needing a second Back tap to actually get
+anywhere.
+
+**The fix:** opening Hadith of the Day now properly prepares the correct
+book's chapter-list screen first (title, subtitle, full chapter list all
+populated), then shows the single hadith on top of it. Back now works in
+one tap, landing on a fully working chapter list.
+
+## 25. Hadith Continue Reading + smaller info cards (new)
+
+**Continue Reading for Hadith**: new card on the Hadith tab's book-choice
+screen, alongside Hadith of the Day. Remembers whichever hadith you last
+opened (whole chapter defaults to its first hadith, single-hadith views
+save that exact number) and jumps straight back to it.
+
+**Card sizing**: Continue Reading and Ayah/Hadith of the Day cards are now
+visually smaller/more compact than the main navigation cards (like the
+Sahih al-Bukhari / Sahih Muslim choice cards) -- smaller padding and text,
+so they read as quick secondary info rather than competing with primary
+navigation. Applied consistently across both the Quran home screen and the
+Hadith home screen.
