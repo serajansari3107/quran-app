@@ -106,7 +106,7 @@ body {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   background: var(--surface-raised);
   color: var(--text-primary);
@@ -152,7 +152,7 @@ body {
 .surah-number {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--teal-soft);
   color: var(--teal);
   display: flex;
@@ -241,7 +241,7 @@ body {
   background: var(--teal-soft);
   color: var(--teal);
   border: 1px solid var(--teal);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
 }
@@ -292,7 +292,7 @@ body {
   padding: 14px 16px;
   background: var(--teal-soft);
   border: 1px solid var(--teal);
-  border-radius: 12px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -373,7 +373,7 @@ body {
   flex: 1;
   padding: 8px 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--surface-raised);
   color: var(--text-secondary);
   font-size: 13px;
@@ -395,7 +395,7 @@ body {
   padding: 16px;
   background: var(--surface-raised);
   border: 1px solid var(--gold);
-  border-radius: 12px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -447,7 +447,7 @@ body {
 .location-card {
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 14px 16px;
   margin-bottom: 16px;
 }
@@ -461,7 +461,7 @@ body {
 .location-card button {
   padding: 8px 14px;
   border: 1px solid var(--teal);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--teal-soft);
   color: var(--teal);
   font-size: 13px;
@@ -501,7 +501,7 @@ body {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   background: var(--surface);
   color: var(--text-primary);
@@ -520,7 +520,7 @@ body {
   max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   margin-bottom: 10px;
 }
 
@@ -571,7 +571,7 @@ body {
   height: 36px;
   flex-shrink: 0;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--surface-raised);
   color: var(--teal);
   font-size: 16px;
@@ -582,7 +582,7 @@ body {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--teal);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--teal-soft);
   color: var(--teal);
   font-size: 14px;
@@ -607,7 +607,7 @@ body {
 .modal-box {
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 20px;
   width: 100%;
   max-width: 380px;
@@ -636,7 +636,7 @@ body {
 .modal-options button {
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--surface);
   color: var(--text-primary);
   font-size: 14px;
@@ -675,15 +675,35 @@ body {
   margin: 0 0 8px;
 }
 
-.hadith-book-choice {
-  padding: 8px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.section-divider-label {
+  margin: 20px 16px 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
-.hadith-book-choice .continue-card {
-  margin: 0;
+.hadith-book-choice {
+  padding: 0 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hadith-collection-card {
+  padding: 14px 16px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hadith-collection-card .continue-label {
+  color: var(--teal);
 }
 
 #hadith-search-box {
@@ -692,7 +712,7 @@ body {
   margin: 12px 16px;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   background: var(--surface-raised);
   color: var(--text-primary);
@@ -745,7 +765,7 @@ body {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   background: var(--surface-raised);
   color: var(--text-primary);
@@ -758,7 +778,7 @@ body {
 .hadith-number-search-row button {
   padding: 0 16px;
   border: 1px solid var(--teal);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--teal-soft);
   color: var(--teal);
   font-size: 14px;
@@ -774,7 +794,7 @@ body {
   padding: 16px;
   background: var(--surface-raised);
   border: 1px solid var(--gold);
-  border-radius: 12px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -795,4 +815,13 @@ body {
 
 .compact-card .continue-label {
   font-size: 10px;
+}
+
+.hadith-grade {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal);
 }

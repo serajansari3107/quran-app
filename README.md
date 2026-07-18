@@ -432,3 +432,67 @@ Sahih al-Bukhari / Sahih Muslim choice cards) -- smaller padding and text,
 so they read as quick secondary info rather than competing with primary
 navigation. Applied consistently across both the Quran home screen and the
 Hadith home screen.
+
+## 26. Sunan Abu Dawud added, with grading (new)
+
+**Sunan Abu Dawud**: 5,276 hadiths, 43 chapters, Arabic + English + grade,
+added as a third book choice on the Hadith tab. Exact total match verified
+against a second independent source before building.
+
+**Grading**: unlike Bukhari/Muslim (which are 100% Sahih by definition, no
+grading needed), Sunan Abu Dawud legitimately has mixed-grade hadiths.
+Sourced from a different dataset (Jammooly1/hadiths-json-files) with a
+proper structured `grade` field from Darussalam's published edition --
+98.5% of hadiths have a grade. Shows as a small "Grade: ..." line below
+each hadith. Cleaned up minor formatting inconsistencies in the raw grade
+text (stray commas, curly vs straight apostrophes) and caught/nulled one
+data glitch (a stray number where a grade should be) rather than guessing.
+
+**Numbering**: same bug pattern as before (source's own numbering field
+resets per chapter) -- generated verified real sequential numbering myself
+during the build, same fix as Bukhari/Muslim.
+
+**Architecture note**: the Hadith system is now fully generic -- adding a
+book means generating its data files and adding one entry to `HADITH_BOOKS`
+in `app.js`. Hadith of the Day, Continue Reading, and search-by-number all
+automatically include every book without needing separate code per book.
+
+## 27. Three fixes: bookmark tap, hadith bookmarks, accurate continue reading (new)
+
+**1. Bookmark tap now shows only that single ayah** (was opening the whole
+surah scrolled to it) -- matches the isolated-view pattern used everywhere
+else (search, Ayah of the Day, Hadith search).
+
+**2. Hadith bookmarking added.** Star icon on every hadith, same as Quran
+ayahs. Bookmarks tab now has a Quran/Hadith toggle at the top to switch
+between the two lists.
+
+**3. Continue Reading now tracks real scroll position**, for both Quran and
+Hadith. Previously it only saved whatever was true the moment you opened a
+surah/chapter (always the first ayah/hadith) and never updated as you
+scrolled further in -- exactly the bug you found with hadith 3230. Now a
+scroll listener updates it live to whichever ayah/hadith is actually near
+the top of your screen. Applies to full surah and full chapter views (Juz
+view and single-item views are unaffected, as intended).
+
+## 28. Five fixes: bookmark scroll jump, back navigation, hadith section layout (new)
+
+**1 & 2. Bookmarking no longer jumps the screen.** Root cause: tapping the
+star used to fully re-render and reset scroll to the top. Now it just
+updates that one star icon in place -- nothing else moves. Fixed for both
+Quran ayahs and hadiths.
+
+**3 & 4. Back button now returns to where you actually came from**, instead
+of a fixed hardcoded screen. Tracked properly now:
+- From the surah/Juz list, search, or Ayah/Hadith of the Day -> Back goes
+  to the Read/Hadith home screen
+- From Bookmarks -> Back goes back to Bookmarks
+- From a chapter list -> Back goes back to that chapter list
+This applies to both Quran and Hadith reading screens.
+
+**5. Hadith home screen restructured.** Added a "Collections" section
+label with a divider line separating it from Continue Reading / Hadith of
+the Day above. Book choice cards now have their own distinct style (teal
+left accent border) instead of reusing the same rounded card look as the
+info cards. All card/button corners flattened from the previous 8-14px
+rounding down to a consistent 4px across the whole app, not just Hadith.

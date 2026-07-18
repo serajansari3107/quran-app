@@ -34,7 +34,7 @@
     <!-- READING SCREEN -->
     <div id="reading-screen" class="screen hidden">
       <div class="top-bar reading-top-bar">
-        <button id="back-btn" onclick="showHomeScreen()">&#8592; Back</button>
+        <button id="back-btn" onclick="showScreen(quranReturnScreen)">&#8592; Back</button>
         <div class="reading-title-block">
           <h2 id="reading-title"></h2>
           <p id="reading-subtitle" class="subtitle"></p>
@@ -87,16 +87,23 @@
         <h1>Hadith</h1>
         <p class="subtitle">Choose a collection &middot; offline</p>
       </div>
+
       <div id="hadith-continue-reading" class="hidden"></div>
       <div id="hadith-of-day" class="hidden"></div>
+
+      <p class="section-divider-label">Collections</p>
       <div class="hadith-book-choice">
-        <div class="continue-card" onclick="openHadithBook('bukhari')">
+        <div class="hadith-collection-card" onclick="openHadithBook('bukhari')">
           <p class="continue-label">Sahih al-Bukhari</p>
           <p class="continue-title">97 chapters &middot; 7,277 hadiths</p>
         </div>
-        <div class="continue-card" onclick="openHadithBook('muslim')">
+        <div class="hadith-collection-card" onclick="openHadithBook('muslim')">
           <p class="continue-label">Sahih Muslim</p>
           <p class="continue-title">57 chapters &middot; 7,459 hadiths</p>
+        </div>
+        <div class="hadith-collection-card" onclick="openHadithBook('abudawud')">
+          <p class="continue-label">Sunan Abu Dawud</p>
+          <p class="continue-title">43 chapters &middot; 5,276 hadiths</p>
         </div>
       </div>
     </div>
@@ -121,7 +128,7 @@
     <!-- HADITH READING SCREEN -->
     <div id="hadith-reading-screen" class="screen hidden">
       <div class="top-bar reading-top-bar">
-        <button id="hadith-back-btn" onclick="showScreen('hadith-book-screen')">&#8592; Back</button>
+        <button id="hadith-back-btn" onclick="showScreen(hadithReturnScreen)">&#8592; Back</button>
         <div class="reading-title-block">
           <h2 id="hadith-reading-title"></h2>
           <p id="hadith-reading-subtitle" class="subtitle"></p>
@@ -134,9 +141,14 @@
     <div id="bookmarks-screen" class="screen hidden">
       <div class="top-bar">
         <h1>Bookmarks</h1>
-        <p class="subtitle">Ayahs you've starred</p>
+        <p class="subtitle">Ayahs and hadiths you've starred</p>
+      </div>
+      <div class="list-toggle">
+        <button id="bookmarks-toggle-quran" class="toggle-btn active" onclick="setBookmarksTab('quran')">Quran</button>
+        <button id="bookmarks-toggle-hadith" class="toggle-btn" onclick="setBookmarksTab('hadith')">Hadith</button>
       </div>
       <div id="bookmarks-list"></div>
+      <div id="hadith-bookmarks-list" class="hidden"></div>
     </div>
 
     <!-- SETTINGS SCREEN -->
@@ -322,6 +334,50 @@
   <script src="data/hadith/muslim-054.js"></script>
   <script src="data/hadith/muslim-055.js"></script>
   <script src="data/hadith/muslim-056.js"></script>
+  <script src="data/abudawud-book-list.js"></script>
+  <script src="data/hadith/abudawud-001.js"></script>
+  <script src="data/hadith/abudawud-002.js"></script>
+  <script src="data/hadith/abudawud-003.js"></script>
+  <script src="data/hadith/abudawud-004.js"></script>
+  <script src="data/hadith/abudawud-005.js"></script>
+  <script src="data/hadith/abudawud-006.js"></script>
+  <script src="data/hadith/abudawud-007.js"></script>
+  <script src="data/hadith/abudawud-008.js"></script>
+  <script src="data/hadith/abudawud-009.js"></script>
+  <script src="data/hadith/abudawud-010.js"></script>
+  <script src="data/hadith/abudawud-011.js"></script>
+  <script src="data/hadith/abudawud-012.js"></script>
+  <script src="data/hadith/abudawud-013.js"></script>
+  <script src="data/hadith/abudawud-014.js"></script>
+  <script src="data/hadith/abudawud-015.js"></script>
+  <script src="data/hadith/abudawud-016.js"></script>
+  <script src="data/hadith/abudawud-017.js"></script>
+  <script src="data/hadith/abudawud-018.js"></script>
+  <script src="data/hadith/abudawud-019.js"></script>
+  <script src="data/hadith/abudawud-020.js"></script>
+  <script src="data/hadith/abudawud-021.js"></script>
+  <script src="data/hadith/abudawud-022.js"></script>
+  <script src="data/hadith/abudawud-023.js"></script>
+  <script src="data/hadith/abudawud-024.js"></script>
+  <script src="data/hadith/abudawud-025.js"></script>
+  <script src="data/hadith/abudawud-026.js"></script>
+  <script src="data/hadith/abudawud-027.js"></script>
+  <script src="data/hadith/abudawud-028.js"></script>
+  <script src="data/hadith/abudawud-029.js"></script>
+  <script src="data/hadith/abudawud-030.js"></script>
+  <script src="data/hadith/abudawud-031.js"></script>
+  <script src="data/hadith/abudawud-032.js"></script>
+  <script src="data/hadith/abudawud-033.js"></script>
+  <script src="data/hadith/abudawud-034.js"></script>
+  <script src="data/hadith/abudawud-035.js"></script>
+  <script src="data/hadith/abudawud-036.js"></script>
+  <script src="data/hadith/abudawud-037.js"></script>
+  <script src="data/hadith/abudawud-038.js"></script>
+  <script src="data/hadith/abudawud-039.js"></script>
+  <script src="data/hadith/abudawud-040.js"></script>
+  <script src="data/hadith/abudawud-041.js"></script>
+  <script src="data/hadith/abudawud-042.js"></script>
+  <script src="data/hadith/abudawud-043.js"></script>
   <script src="data/hadith/bukhari-001.js"></script>
   <script src="data/hadith/bukhari-002.js"></script>
   <script src="data/hadith/bukhari-003.js"></script>

@@ -5,6 +5,58 @@
 // surahList and each surahData object (e.g. surah001) come from the
 // data/*.js files loaded before this one in index.html.
 
+// ---------- Scroll-position tracking (keeps "Continue Reading" accurate) ----------
+// Full surah / full chapter views can be long -- this watches scroll position
+// and updates lastRead/hadithLastRead to whichever item is actually near the
+// top of the screen, instead of freezing at whatever was true when opened.
+
+let scrollTrackTicking = false;
+
+function findTopmostVisibleCard(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return null;
+  const cards = container.querySelectorAll('.ayah-card');
+  let closest = null;
+  let closestDist = Infinity;
+  cards.forEach(function (card) {
+    const rect = card.getBoundingClientRect();
+    const dist = Math.abs(rect.top - 90); // ~top-bar height offset
+    if (rect.bottom > 0 && dist < closestDist) {
+      closestDist = dist;
+      closest = card;
+    }
+  });
+  return closest;
+}
+
+function onAppScroll() {
+  if (scrollTrackTicking) return;
+  scrollTrackTicking = true;
+  window.requestAnimationFrame(function () {
+    scrollTrackTicking = false;
+
+    const readingVisible = !document.getElementById('reading-screen').classList.contains('hidden');
+    if (readingVisible && currentOpenSurah) {
+      const card = findTopmostVisibleCard('ayah-list');
+      if (card) {
+        const parts = card.id.split('-'); // "ayah-<surah>-<ayah>"
+        const ayahNum = Number(parts[2]);
+        if (ayahNum) saveJSON('lastRead', { surah: currentOpenSurah, ayah: ayahNum });
+      }
+    }
+
+    const hadithReadingVisible = !document.getElementById('hadith-reading-screen').classList.contains('hidden');
+    if (hadithReadingVisible && currentOpenHadithChapter) {
+      const card = findTopmostVisibleCard('hadith-list');
+      if (card && card.dataset.hadithNumber) {
+        saveJSON('hadithLastRead', { book: currentHadithBook, number: Number(card.dataset.hadithNumber) });
+      }
+    }
+  });
+}
+
+window.addEventListener('scroll', onAppScroll, { passive: true });
+
 // ---------- Small storage helpers (saved on this device only) ----------
 
 function loadJSON(key, fallback) {
@@ -77,6 +129,8 @@ function renderContinueReading() {
 let currentOpenSurah = null;
 let currentOpenJuz = null;
 let currentOpenHadithChapter = null;
+let quranReturnScreen = 'home-screen';
+let hadithReturnScreen = 'hadith-book-screen';
 
 function buildReadingAyahCard(surahNumber, ayah, bookmarks, lang, translitStyle, displayMode) {
   const translitText = translitStyle === 'b' ? ayah.transliterationB : ayah.transliteration;
@@ -125,12 +179,13 @@ function resetReadingScroll() {
   if (ayahList) ayahList.scrollTop = 0;
 }
 
-function openJuz(juzNumber) {
+function openJuz(juzNumber, returnTo) {
   const juz = juzList.find(function (j) { return j.number === juzNumber; });
   if (!juz) return;
 
   currentOpenJuz = juzNumber;
   currentOpenSurah = null;
+  quranReturnScreen = returnTo || 'home-screen';
   document.getElementById('download-surah-btn').classList.add('hidden');
 
   showScreen('reading-screen');
@@ -170,10 +225,11 @@ function openJuz(juzNumber) {
   resetReadingScroll();
 }
 
-function openSurah(number, scrollToAyah) {
+function openSurah(number, scrollToAyah, returnTo) {
   currentOpenSurah = number;
   currentOpenJuz = null;
   currentSingleAyahView = null;
+  quranReturnScreen = returnTo || 'home-screen';
   document.getElementById('download-surah-btn').classList.remove('hidden');
   const meta = surahList.find(function (s) { return s.number === number; });
   const data = window['surah' + String(number).padStart(3, '0')]; // e.g. surah001
@@ -218,22 +274,62 @@ function openSurah(number, scrollToAyah) {
 function toggleBookmark(surahNum, ayahNum) {
   let bookmarks = loadJSON('bookmarks', []);
   const idx = bookmarks.findIndex(function (b) { return b.surah === surahNum && b.ayah === ayahNum; });
+  let nowBookmarked;
   if (idx >= 0) {
     bookmarks.splice(idx, 1);
+    nowBookmarked = false;
   } else {
     bookmarks.push({ surah: surahNum, ayah: ayahNum });
+    nowBookmarked = true;
   }
   saveJSON('bookmarks', bookmarks);
-  if (currentOpenJuz) {
-    openJuz(currentOpenJuz);
-  } else if (currentSingleAyahView) {
-    openSingleAyah(currentSingleAyahView.surah, currentSingleAyahView.ayah);
-  } else {
-    openSurah(surahNum); // re-render to update the star icon
+
+  const btn = document.querySelector('#ayah-' + surahNum + '-' + ayahNum + ' .bookmark-btn');
+  if (btn) {
+    btn.classList.toggle('active', nowBookmarked);
+    btn.textContent = nowBookmarked ? '\u2605' : '\u2606';
   }
 }
 
 // ---------- Bookmarks screen ----------
+
+let currentBookmarksTab = 'quran';
+
+function setBookmarksTab(tab) {
+  currentBookmarksTab = tab;
+  document.getElementById('bookmarks-toggle-quran').classList.toggle('active', tab === 'quran');
+  document.getElementById('bookmarks-toggle-hadith').classList.toggle('active', tab === 'hadith');
+  document.getElementById('bookmarks-list').classList.toggle('hidden', tab !== 'quran');
+  document.getElementById('hadith-bookmarks-list').classList.toggle('hidden', tab !== 'hadith');
+  if (tab === 'quran') {
+    renderBookmarksScreen();
+  } else {
+    renderHadithBookmarksScreen();
+  }
+}
+
+function renderHadithBookmarksScreen() {
+  const bookmarks = loadJSON('hadithBookmarks', []);
+  const list = document.getElementById('hadith-bookmarks-list');
+
+  if (bookmarks.length === 0) {
+    list.innerHTML = '<div class="empty-state"><p>No hadith bookmarks yet.</p><p>Tap the star on any hadith while reading to save it here.</p></div>';
+    return;
+  }
+
+  list.innerHTML = bookmarks.map(function (b) {
+    const info = HADITH_BOOKS[b.book];
+    if (!info) return '';
+    return (
+      '<div class="surah-row" onclick="openHadithOfDay(\'' + b.book + '\', ' + b.number + ', \'bookmarks-screen\')">' +
+        '<div class="surah-number">\u2605</div>' +
+        '<div class="surah-info">' +
+          '<p class="name">' + info.label + ', Hadith ' + b.number + '</p>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
 
 function renderBookmarksScreen() {
   const bookmarks = loadJSON('bookmarks', []);
@@ -248,7 +344,7 @@ function renderBookmarksScreen() {
     const meta = surahList.find(function (s) { return s.number === b.surah; });
     if (!meta) return '';
     return (
-      '<div class="surah-row" onclick="openSurah(' + b.surah + ', ' + b.ayah + ')">' +
+      '<div class="surah-row" onclick="openSingleAyah(' + b.surah + ', ' + b.ayah + ', \'bookmarks-screen\')">' +
         '<div class="surah-number">\u2605</div>' +
         '<div class="surah-info">' +
           '<p class="name">' + meta.nameEnglish + ', Ayah ' + b.ayah + '</p>' +
@@ -299,7 +395,7 @@ function showScreen(id) {
     renderContinueReading();
     renderAyahOfDay();
   }
-  if (id === 'bookmarks-screen') renderBookmarksScreen();
+  if (id === 'bookmarks-screen') setBookmarksTab(currentBookmarksTab);
   if (id === 'salah-screen') renderSalahScreen();
   if (id === 'hadith-home-screen') {
     renderContinueReadingHadith();
@@ -377,7 +473,7 @@ function tryJumpFromSearch() {
 
 let currentSingleAyahView = null; // { surah, ayah } when showing one isolated ayah
 
-function openSingleAyah(surahNum, ayahNum) {
+function openSingleAyah(surahNum, ayahNum, returnTo) {
   const meta = surahList.find(function (s) { return s.number === surahNum; });
   const data = window['surah' + String(surahNum).padStart(3, '0')];
   const ayah = data.ayahs.find(function (a) { return a.number === ayahNum; });
@@ -386,6 +482,7 @@ function openSingleAyah(surahNum, ayahNum) {
   currentOpenSurah = null;
   currentOpenJuz = null;
   currentSingleAyahView = { surah: surahNum, ayah: ayahNum };
+  quranReturnScreen = returnTo || 'home-screen';
   document.getElementById('download-surah-btn').classList.add('hidden');
 
   showScreen('reading-screen');
@@ -564,6 +661,12 @@ const HADITH_BOOKS = {
     list: function () { return muslimBookList; },
     varPrefix: 'muslimChapter',
     chapterCount: 57
+  },
+  abudawud: {
+    label: 'Sunan Abu Dawud',
+    list: function () { return abudawudBookList; },
+    varPrefix: 'abudawudChapter',
+    chapterCount: 43
   }
 };
 
@@ -636,6 +739,7 @@ function searchHadithByNumber() {
 
   currentHadithNumberView = { book: currentHadithBook, number: num };
   currentOpenHadithChapter = null;
+  hadithReturnScreen = 'hadith-book-screen';
   document.getElementById('hadith-number-search-box').value = '';
   renderSingleHadithView(chapter, hadith, info);
 }
@@ -645,15 +749,25 @@ function renderSingleHadithView(chapter, hadith, info) {
   document.getElementById('hadith-reading-title').textContent = 'Hadith ' + hadith.number;
   document.getElementById('hadith-reading-subtitle').textContent = info.label + ' \u00b7 ' + chapter.englishTitle;
 
+  const bookKey = currentHadithNumberView ? currentHadithNumberView.book : currentHadithBook;
   const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
   const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
 
+  const hadithBookmarks = loadJSON('hadithBookmarks', []);
+  const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.number === hadith.number; });
+  const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
+  const starSymbol = isBookmarked ? '\u2605' : '\u2606';
+
   document.getElementById('hadith-list').innerHTML =
-    '<div class="ayah-card">' +
-      '<p class="ayah-number">Hadith ' + hadith.number + '</p>' +
+    '<div class="ayah-card" id="hadith-' + bookKey + '-' + hadith.number + '" data-hadith-number="' + hadith.number + '">' +
+      '<div class="ayah-card-header">' +
+        '<p class="ayah-number">Hadith ' + hadith.number + '</p>' +
+        '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + hadith.number + ')">' + starSymbol + '</button>' +
+      '</div>' +
       (hadith.narrator ? '<p class="hadith-narrator">' + hadith.narrator + '</p>' : '') +
       arabicBlock +
       '<p class="hadith-english-text">' + hadith.english + '</p>' +
+      (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
     '</div>';
 
   if (currentHadithNumberView) {
@@ -666,6 +780,7 @@ function renderSingleHadithView(chapter, hadith, info) {
 function openHadithChapter(chapterId) {
   currentOpenHadithChapter = chapterId;
   currentHadithNumberView = null;
+  hadithReturnScreen = 'hadith-book-screen';
   const info = HADITH_BOOKS[currentHadithBook];
   const meta = info.list().find(function (c) { return c.chapterId === chapterId; });
   const data = window[info.varPrefix + String(chapterId).padStart(3, '0')];
@@ -682,17 +797,26 @@ function openHadithChapter(chapterId) {
   }
 
   const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
+  const hadithBookmarks = loadJSON('hadithBookmarks', []);
+  const bookKey = currentHadithBook;
 
   saveJSON('hadithLastRead', { book: currentHadithBook, number: meta.firstNumber });
 
   list.innerHTML = data.hadiths.map(function (h) {
     const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + h.arabic + '</p>';
+    const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.number === h.number; });
+    const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
+    const starSymbol = isBookmarked ? '\u2605' : '\u2606';
     return (
-      '<div class="ayah-card">' +
-        '<p class="ayah-number">Hadith ' + h.number + '</p>' +
+      '<div class="ayah-card" id="hadith-' + bookKey + '-' + h.number + '" data-hadith-number="' + h.number + '">' +
+        '<div class="ayah-card-header">' +
+          '<p class="ayah-number">Hadith ' + h.number + '</p>' +
+          '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + h.number + ')">' + starSymbol + '</button>' +
+        '</div>' +
         (h.narrator ? '<p class="hadith-narrator">' + h.narrator + '</p>' : '') +
         arabicBlock +
         '<p class="hadith-english-text">' + h.english + '</p>' +
+        (h.grade ? '<p class="hadith-grade">Grade: ' + h.grade + '</p>' : '') +
       '</div>'
     );
   }).join('');
@@ -749,6 +873,26 @@ function onHadithEnglishSizeChange(value) {
   applyHadithFontSizes();
 }
 
+function toggleHadithBookmark(book, number) {
+  let bookmarks = loadJSON('hadithBookmarks', []);
+  const idx = bookmarks.findIndex(function (b) { return b.book === book && b.number === number; });
+  let nowBookmarked;
+  if (idx >= 0) {
+    bookmarks.splice(idx, 1);
+    nowBookmarked = false;
+  } else {
+    bookmarks.push({ book: book, number: number });
+    nowBookmarked = true;
+  }
+  saveJSON('hadithBookmarks', bookmarks);
+
+  const btn = document.querySelector('#hadith-' + book + '-' + number + ' .bookmark-btn');
+  if (btn) {
+    btn.classList.toggle('active', nowBookmarked);
+    btn.textContent = nowBookmarked ? '\u2605' : '\u2606';
+  }
+}
+
 // ---------- Hadith: Continue Reading ----------
 
 function renderContinueReadingHadith() {
@@ -773,22 +917,25 @@ function renderContinueReadingHadith() {
 function renderHadithOfDay() {
   const box = document.getElementById('hadith-of-day');
 
-  const bukhariTotal = hadithBookList.reduce(function (s, c) { return s + c.hadithCount; }, 0);
-  const muslimTotal = muslimBookList.reduce(function (s, c) { return s + c.hadithCount; }, 0);
-  const combinedTotal = bukhariTotal + muslimTotal;
+  const bookKeys = Object.keys(HADITH_BOOKS);
+  const bookTotals = bookKeys.map(function (key) {
+    return HADITH_BOOKS[key].list().reduce(function (s, c) { return s + c.hadithCount; }, 0);
+  });
+  const combinedTotal = bookTotals.reduce(function (a, b) { return a + b; }, 0);
 
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((now - startOfYear) / 86400000);
-  const targetIndex = dayOfYear % combinedTotal;
+  let targetIndex = dayOfYear % combinedTotal;
 
   let book, num;
-  if (targetIndex < bukhariTotal) {
-    book = 'bukhari';
-    num = targetIndex + 1;
-  } else {
-    book = 'muslim';
-    num = (targetIndex - bukhariTotal) + 1;
+  for (let i = 0; i < bookKeys.length; i++) {
+    if (targetIndex < bookTotals[i]) {
+      book = bookKeys[i];
+      num = targetIndex + 1;
+      break;
+    }
+    targetIndex -= bookTotals[i];
   }
 
   const info = HADITH_BOOKS[book];
@@ -806,16 +953,15 @@ function renderHadithOfDay() {
     '</div>';
 }
 
-function openHadithOfDay(book, num) {
+function openHadithOfDay(book, num, returnTo) {
+  currentHadithBook = book;
+  hadithReturnScreen = returnTo || 'hadith-home-screen';
+
   const info = HADITH_BOOKS[book];
   const fullList = info.list();
   const chapter = fullList.find(function (c) { return num >= c.firstNumber && num <= c.lastNumber; });
   const data = window[info.varPrefix + String(chapter.chapterId).padStart(3, '0')];
   const hadith = data.hadiths.find(function (h) { return h.number === num; });
-
-  // Prepare the chapter-list screen underneath first, so the Back button
-  // from the reading screen lands somewhere populated, not blank.
-  openHadithBook(book);
 
   currentHadithNumberView = { book: book, number: num };
   currentOpenHadithChapter = null;
