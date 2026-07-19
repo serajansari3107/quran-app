@@ -526,3 +526,42 @@ discrepancy (unrelated to this a/b pattern -- see their own investigation)
 and are not fixed by this change. Tirmidhi has a similar but more complex
 a/b pattern (45 pairs, plus some malformed combined entries) and needs its
 own dedicated pass, not yet done.
+
+## 30. Sahih Bukhari numbering fixed to match sunnah.com (new)
+
+**The cause, confirmed by your report:** sunnah.com sometimes shows one
+Arabic hadith split across two (or occasionally three or four) English
+paragraph-numbers, displayed together as one combined page -- e.g. "Sahih
+al-Bukhari 272, 273". My old numbering treated every entry as one integer,
+causing permanent drift after each such combined entry.
+
+**The fix:** used the same title-field technique that worked for Abu Dawud,
+scanned and validated across all 7,277 entries with zero unparsed titles.
+Found and correctly handled 4 distinct patterns sunnah.com uses:
+- Plain single numbers (the majority)
+- Combined pairs, e.g. "272, 273" (253 cases)
+- Combined triples/quads, e.g. "958, 959, 960, 961" (12 cases)
+- Dash-ranges, e.g. "5709-5712" (5 cases)
+- Lettered sub-numbers, e.g. "402b" (26 cases, including one number with
+  three parts: 1390, 1390b, 1390c)
+
+Sunnah.com itself displays combined entries as a single page too, so no
+splitting was needed -- each physical hadith just needed the correct label
+matching sunnah.com's own display (e.g. "Hadith 272, 273").
+
+**Verified:** max number found is 7,563, matching sunnah.com's own stated
+total exactly. Coverage is 7,539 of 7,563 possible numbers (99.7%) --
+sunnah.com's own About page describes their total as "roughly 7563", so
+this small gap is consistent with their own hedging, not a sign of missing
+data on my end. Directly tested your two reported cases (272/273 and
+949/950) -- both now correctly resolve to the same combined entry, matching
+sunnah.com exactly.
+
+**What changed in the data:** hadiths now have `number`, `numberEnd`
+(only set when different from `number`), and `suffix`. Search box accepts
+any number within a combined range (searching either 272 or 273 finds the
+same entry). Bookmarking, Continue Reading, and Hadith of the Day all
+updated to handle this correctly.
+
+**Scope note:** Muslim has not been re-validated with this technique yet --
+same investigation still needs to happen there before trusting its numbers.
