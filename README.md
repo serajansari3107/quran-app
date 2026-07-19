@@ -496,3 +496,33 @@ the Day above. Book choice cards now have their own distinct style (teal
 left accent border) instead of reusing the same rounded card look as the
 info cards. All card/button corners flattened from the previous 8-14px
 rounding down to a consistent 4px across the whole app, not just Hadith.
+
+## 29. Sunan Abu Dawud numbering fixed to match sunnah.com exactly (new)
+
+**The real cause**, found via user-reported cross-check against sunnah.com:
+sunnah.com uses lettered sub-numbers for 2 hadiths in this book (907b and
+4290b) which don't consume their own integer -- e.g. the real sequence is
+...907, 907b, 908... My previous auto-generated numbering (1,2,3...N)
+didn't know this and treated every entry as a new integer, causing every
+number from 908 onward to drift by +1 (and by +2 after 4290b).
+
+**The fix:** discovered the raw source data's `title` field already
+contains sunnah.com's real reference number as text for every single
+hadith (not just these two) -- validated across all 5,276 entries: 5,274
+distinct numbers, zero gaps, matching sunnah.com's own stated total exactly.
+Rebuilt Abu Dawud using this as the authoritative source instead of my own
+counter. Also fixed one minor ordering swap found during validation
+(hadiths 3648/3649 were listed in reversed order in the raw source).
+
+**What changed in the data:** each hadith now has both `number` (e.g. 907)
+and `suffix` (e.g. "b", or empty). Displayed as "907b" when it has a
+suffix. Search box now accepts letters too (e.g. type "907b" directly).
+Bookmarking, Continue Reading, and Hadith of the Day all updated to handle
+these paired entries correctly. Book total updated to 5,274 (was 5,276),
+matching sunnah.com.
+
+**Scope note:** Bukhari and Muslim have a deeper, different numbering
+discrepancy (unrelated to this a/b pattern -- see their own investigation)
+and are not fixed by this change. Tirmidhi has a similar but more complex
+a/b pattern (45 pairs, plus some malformed combined entries) and needs its
+own dedicated pass, not yet done.
