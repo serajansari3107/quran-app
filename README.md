@@ -565,3 +565,38 @@ updated to handle this correctly.
 
 **Scope note:** Muslim has not been re-validated with this technique yet --
 same investigation still needs to happen there before trusting its numbers.
+
+## 31. Sahih Muslim numbering fixed to match sunnah.com (new)
+
+**Confirmed exactly what you found:** sunnah.com has two completely separate,
+independent numbering tracks for Muslim -- the main hadiths and a separate
+"Introduction" (Muqaddimah) section -- verified directly against sunnah.com
+(`muslim:8a`/`muslim:8e` belong to real hadith "Book of Faith", while
+`muslim/introduction/9` is a totally different page). Your report that hadith
+5 is followed by "Introduction 8-14" then hadith 6 was exactly right -- these
+are two interleaved-in-the-source but logically separate tracks.
+
+**Chapter order fixed:** Introduction is now chapter 0 and shows first, as
+you asked.
+
+**Numbering fixed** using a more general model than Bukhari/Abu Dawud
+needed -- validated against all 7,459 entries with zero unparsed titles,
+handling every pattern found: plain numbers, lettered sub-parts (including
+double-letter cases like "1211 aa" through "1211 ah" -- one hadith with 30+
+narration variants), comma-lists, letter-ranges, cross-number spans (e.g.
+"928a, 927h, 929a"), and slash-combinations. Directly tested your exact
+example: hadith 4 correctly shows as two entries "4a" and "4b".
+
+**Extra bug caught and fixed during this work:** chapter 0's Introduction
+range (numbers 8-92) numerically overlaps with chapter 1's real hadith
+numbers (which also start at 8, e.g. "8a"-"8e"). Searching a plain number
+like "10" could have incorrectly matched the Introduction's "10" instead of
+the real hadith 10 in "The Book of Faith". Fixed with a proper lookup that
+prefers real hadiths over Introduction entries by default -- verified with
+real data.
+
+**Data model note:** Bukhari and Abu Dawud were also converted to this more
+general model (each hadith stores a list of number/suffix references
+instead of a single number) for consistency and to avoid maintaining two
+separate systems long-term. All existing functionality re-verified working
+after this conversion.

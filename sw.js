@@ -1,12 +1,5 @@
 // Service worker: makes the app work with no internet after the first visit.
-// You generally don't need to edit this file.
-//
-// IMPORTANT: whenever you change index.html, style.css, app.js, manifest.json,
-// or any file in data/, icons/, or fonts/, bump CACHE_NAME below (e.g.
-// "quran-app-v31" -> "quran-app-v32"). That tells returning visitors'
-// browsers to fetch your updated files instead of serving old cached ones.
-
-const CACHE_NAME = "quran-app-v32";
+const CACHE_NAME = "quran-app-v34";
 
 const ASSETS_TO_CACHE = [
   "./",
