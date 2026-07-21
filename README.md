@@ -600,3 +600,27 @@ general model (each hadith stores a list of number/suffix references
 instead of a single number) for consistency and to avoid maintaining two
 separate systems long-term. All existing functionality re-verified working
 after this conversion.
+
+## 32. Fixed: Sahih Muslim chapter number ranges (bug fix)
+
+**The bug you found:** chapter 55 showed "533-3014" instead of "2956-3014";
+chapter 5 showed "33-684" instead of "520-684".
+
+**The cause:** not a data error -- a genuine, widespread feature of how
+Imam Muslim's book works. He frequently continues an earlier hadith's
+lettered variants (e.g. hadith 533's "533c") when discussing it again in a
+completely different, much-later topical chapter. My original range
+calculation used simple min/max, which got dragged down by these rare
+stray cross-references.
+
+**The fix:** added a second, robust "display range" calculated via
+gap-based clustering that finds each chapter's real dominant block of
+hadiths and ignores isolated stragglers -- verified against both your exact
+examples (2956-3014 and 520-684, both exact matches). Kept the original
+true min/max as a separate field used only for search lookups, so hadiths
+in those stray positions (like 513b) remain fully searchable and readable
+-- only the displayed chapter range text changed, not the actual content.
+
+**Scope:** fixed for Sahih Muslim only, as requested. Bukhari and Abu Dawud
+use simpler, cleaner number patterns that don't show this same issue at
+this scale, but haven't been re-audited specifically for it.

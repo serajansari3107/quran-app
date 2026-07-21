@@ -695,7 +695,7 @@ function renderHadithBookList(list) {
         '<div class="surah-number">' + c.chapterId + '</div>' +
         '<div class="surah-info">' +
           '<p class="name">' + c.englishTitle + '</p>' +
-          '<p class="meta">Hadith ' + c.firstNumber + '\u2013' + c.lastNumber + ' &middot; ' + c.hadithCount + ' hadiths</p>' +
+          '<p class="meta">Hadith ' + (c.displayFirstNumber || c.firstNumber) + '\u2013' + (c.displayLastNumber || c.lastNumber) + ' &middot; ' + c.hadithCount + ' hadiths</p>' +
         '</div>' +
       '</div>'
     );

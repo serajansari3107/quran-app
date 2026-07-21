@@ -1,5 +1,4 @@
-// Service worker: makes the app work with no internet after the first visit.
-const CACHE_NAME = "quran-app-v34";
+const CACHE_NAME = "quran-app-v35";
 
 const ASSETS_TO_CACHE = [
   "./",
