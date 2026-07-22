@@ -624,3 +624,50 @@ in those stray positions (like 513b) remain fully searchable and readable
 **Scope:** fixed for Sahih Muslim only, as requested. Bukhari and Abu Dawud
 use simpler, cleaner number patterns that don't show this same issue at
 this scale, but haven't been re-audited specifically for it.
+
+## 33. Jami' at-Tirmidhi numbering fixed to match sunnah.com (new, Tirmidhi only)
+
+Applied the same validated technique used for Bukhari/Muslim/Abu Dawud --
+scanned and parsed all 4,053 titles in the source data, handling plain
+numbers, lettered sub-parts, comma-lists, dash-ranges, and slash-combos.
+
+**Result: 4,052 of 4,053 titles parsed cleanly** against the same pattern
+set already proven correct for the other three books.
+
+**One honest exception:** a single hadith (about giving/withholding/loving
+for Allah's sake) had a completely blank number in the source data --
+positioned exactly between hadith 2520 and 2522, so I filled it in as 2521
+based on that strong positional evidence. This is **inferred, not
+independently confirmed against sunnah.com directly** -- marked with
+`isNumberInferred: true` in the data itself so it's clearly flagged if you
+want to verify it yourself later.
+
+**Robust chapter-range display** (the same fix used for Sahih Muslim's
+chapter 5/55 issue) applied here too, since Tirmidhi has the same
+cross-referencing pattern where a hadith's lettered variant occasionally
+appears in a much later chapter.
+
+**Scope confirmed:** only Tirmidhi's data files and book list were
+regenerated. Bukhari, Muslim, and Abu Dawud files were not touched or
+re-validated in this pass (verified via file timestamps before packaging).
+
+## 34. Sunan Ibn Majah added (new, sunnah.com-verified from the start)
+
+**Sunan Ibn Majah**: 4,345 physical entries, 38 chapters, Arabic + English +
+grade, added as a fifth book choice on the Hadith tab. Built using the same
+validated title-field-parsing technique as the other four books, from the
+start rather than as a later fix -- 100% of titles parsed cleanly, zero
+unparsed entries.
+
+**Verified against sunnah.com's own stated total** (4,341 hadiths in 37
+books): max number found is exactly 4,341, confirmed by checking sunnah.com
+directly before building. The 38 vs 37 chapter count difference is just a
+zero-indexing convention (chapters 0-37 = 38 entries, same pattern already
+seen in Bukhari), not a real discrepancy.
+
+Same robust "display range" chapter list logic applied from the start (no
+separate fix needed later, unlike Sahih Muslim).
+
+**Scope confirmed:** only Ibn Majah's files were created. Bukhari, Muslim,
+Abu Dawud, and Tirmidhi files were not touched (verified via file
+timestamps before packaging).

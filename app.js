@@ -674,6 +674,12 @@ const HADITH_BOOKS = {
     list: function () { return tirmidhiBookList; },
     varPrefix: 'tirmidhiChapter',
     chapterCount: 49
+  },
+  ibnmajah: {
+    label: 'Sunan Ibn Majah',
+    list: function () { return ibnmajahBookList; },
+    varPrefix: 'ibnmajahChapter',
+    chapterCount: 38
   }
 };
 
