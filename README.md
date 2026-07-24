@@ -671,3 +671,51 @@ separate fix needed later, unlike Sahih Muslim).
 **Scope confirmed:** only Ibn Majah's files were created. Bukhari, Muslim,
 Abu Dawud, and Tirmidhi files were not touched (verified via file
 timestamps before packaging).
+
+## 35. Sunan an-Nasa'i added, with one honest data gap disclosed (new)
+
+**Sunan an-Nasa'i**: 5,685 hadiths across 51 real chapters, Arabic +
+English + grade, added as a sixth book choice on the Hadith tab.
+
+**Full investigation of a real discrepancy found before building anything:**
+the source data's own metadata claimed 5,758 hadiths, but only 5,685 were
+physically present. Investigated fully rather than ignore it:
+- 2 were simple blank-title entries (same pattern as Tirmidhi's one case) --
+  inferred from clear positional evidence (sitting exactly between two known
+  consecutive numbers) and marked `isNumberInferred: true` in the data.
+- The other **82 form one solid, contiguous block: hadiths 3857-3938**.
+  Traced this precisely: it's sunnah.com's entire "Book of Agriculture"
+  (35b) -- confirmed directly against sunnah.com that this book exists
+  there and covers exactly that range, but it's completely absent from this
+  app's source dataset. This also explains why the source only had 51 books
+  where sunnah.com has 52.
+
+**Handled honestly, not hidden:** added an explicit placeholder chapter
+for "The Book of Agriculture" in the right position in the chapter list --
+opening it shows a clear message explaining the book isn't available in
+this app's data source, rather than a confusing blank page or a silent gap
+in the numbering. Search for any number in that range correctly returns
+"not found" rather than wrongly matching something else.
+
+Max number found (5,758) exactly matches sunnah.com's real total, and
+every real hadith's number verified reachable via search -- tested hadith
+1, the inferred 512, the boundary at 3939 (right after the gap), and 5758
+(the true last hadith).
+
+**Scope confirmed:** only an-Nasa'i's files were created. Bukhari, Muslim,
+Abu Dawud, Tirmidhi, and Ibn Majah files were not touched (verified via
+file timestamps before packaging).
+
+## 36. Hadith cards redesigned: sunnah.com-style number banner (new)
+
+Every hadith card now shows a bold banner header, exactly like sunnah.com's
+own style -- e.g. "Sahih al-Bukhari 7394" in a dark green bar, right-aligned.
+Below it: narrator with a small icon, then Arabic (if enabled)/English/grade,
+same content as before, just restyled.
+
+This was a shared rendering change (one function used by both the full
+chapter view and the single-hadith view), so it automatically applies to
+all six books -- Bukhari, Muslim, Abu Dawud, Tirmidhi, Ibn Majah, and
+an-Nasa'i -- not just Bukhari. Verified against the exact hadith from your
+screenshot (Bukhari 7394, Hudhaifah's narration) -- confirmed matching
+content and banner text.

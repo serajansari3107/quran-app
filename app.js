@@ -680,6 +680,12 @@ const HADITH_BOOKS = {
     list: function () { return ibnmajahBookList; },
     varPrefix: 'ibnmajahChapter',
     chapterCount: 38
+  },
+  nasai: {
+    label: "Sunan an-Nasa'i",
+    list: function () { return nasaiBookList; },
+    varPrefix: 'nasaiChapter',
+    chapterCount: 52
   }
 };
 
@@ -793,6 +799,31 @@ function hadithPrimaryRef(hadith) {
   return hadith.refs[0];
 }
 
+function buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadithDisplayMode) {
+  const displayNum = hadithDisplayNumber(hadith);
+  const primaryRef = hadithPrimaryRef(hadith);
+  const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
+  const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.number === primaryRef.number && (b.suffix || '') === (primaryRef.suffix || ''); });
+  const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
+  const starSymbol = isBookmarked ? '\u2605' : '\u2606';
+
+  return (
+    '<div class="hadith-card" id="hadith-' + bookKey + '-' + hadithIdSuffix(hadith) + '" data-hadith-number="' + primaryRef.number + '">' +
+      '<div class="hadith-number-banner">' + info.label + ' ' + displayNum + '</div>' +
+      '<div class="hadith-card-body">' +
+        '<div class="hadith-narrator-row">' +
+          '<span class="hadith-narrator-icon">&#128173;</span>' +
+          (hadith.narrator ? '<p class="hadith-narrator">' + hadith.narrator + '</p>' : '<span></span>') +
+          '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + primaryRef.number + ',\'' + (primaryRef.suffix || '') + '\',\'' + hadithIdSuffix(hadith) + '\')">' + starSymbol + '</button>' +
+        '</div>' +
+        arabicBlock +
+        '<p class="hadith-english-text">' + hadith.english + '</p>' +
+        (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
+      '</div>' +
+    '</div>'
+  );
+}
+
 function renderSingleHadithView(chapter, hadith, info) {
   showScreen('hadith-reading-screen');
   const displayNum = hadithDisplayNumber(hadith);
@@ -801,25 +832,10 @@ function renderSingleHadithView(chapter, hadith, info) {
 
   const bookKey = currentHadithNumberView ? currentHadithNumberView.book : currentHadithBook;
   const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
-  const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
-
-  const primaryRef = hadithPrimaryRef(hadith);
   const hadithBookmarks = loadJSON('hadithBookmarks', []);
-  const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.number === primaryRef.number && (b.suffix || '') === (primaryRef.suffix || ''); });
-  const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
-  const starSymbol = isBookmarked ? '\u2605' : '\u2606';
+  const primaryRef = hadithPrimaryRef(hadith);
 
-  document.getElementById('hadith-list').innerHTML =
-    '<div class="ayah-card" id="hadith-' + bookKey + '-' + hadithIdSuffix(hadith) + '" data-hadith-number="' + primaryRef.number + '">' +
-      '<div class="ayah-card-header">' +
-        '<p class="ayah-number">Hadith ' + displayNum + '</p>' +
-        '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + primaryRef.number + ',\'' + (primaryRef.suffix || '') + '\',\'' + hadithIdSuffix(hadith) + '\')">' + starSymbol + '</button>' +
-      '</div>' +
-      (hadith.narrator ? '<p class="hadith-narrator">' + hadith.narrator + '</p>' : '') +
-      arabicBlock +
-      '<p class="hadith-english-text">' + hadith.english + '</p>' +
-      (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
-    '</div>';
+  document.getElementById('hadith-list').innerHTML = buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadithDisplayMode);
 
   if (currentHadithNumberView) {
     saveJSON('hadithLastRead', { book: currentHadithNumberView.book, number: primaryRef.number });
@@ -847,6 +863,16 @@ function openHadithChapter(chapterId) {
     return;
   }
 
+  if (data.isPlaceholder) {
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<p>This book (sunnah.com hadiths ' + meta.firstNumber + '-' + meta.lastNumber + ') is not ' +
+        'available in this app\'s data source -- an entire book missing from the digitized ' +
+        'source used to build this, not a bug in the app.</p>' +
+      '</div>';
+    return;
+  }
+
   const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
   const hadithBookmarks = loadJSON('hadithBookmarks', []);
   const bookKey = currentHadithBook;
@@ -854,24 +880,7 @@ function openHadithChapter(chapterId) {
   saveJSON('hadithLastRead', { book: currentHadithBook, number: meta.firstNumber });
 
   list.innerHTML = data.hadiths.map(function (h) {
-    const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + h.arabic + '</p>';
-    const displayNum = hadithDisplayNumber(h);
-    const primaryRef = hadithPrimaryRef(h);
-    const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.number === primaryRef.number && (b.suffix || '') === (primaryRef.suffix || ''); });
-    const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
-    const starSymbol = isBookmarked ? '\u2605' : '\u2606';
-    return (
-      '<div class="ayah-card" id="hadith-' + bookKey + '-' + hadithIdSuffix(h) + '" data-hadith-number="' + primaryRef.number + '">' +
-        '<div class="ayah-card-header">' +
-          '<p class="ayah-number">Hadith ' + displayNum + '</p>' +
-          '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + primaryRef.number + ',\'' + (primaryRef.suffix || '') + '\',\'' + hadithIdSuffix(h) + '\')">' + starSymbol + '</button>' +
-        '</div>' +
-        (h.narrator ? '<p class="hadith-narrator">' + h.narrator + '</p>' : '') +
-        arabicBlock +
-        '<p class="hadith-english-text">' + h.english + '</p>' +
-        (h.grade ? '<p class="hadith-grade">Grade: ' + h.grade + '</p>' : '') +
-      '</div>'
-    );
+    return buildHadithCard(h, meta, info, bookKey, hadithBookmarks, hadithDisplayMode);
   }).join('');
 
   resetReadingScroll();
