@@ -127,13 +127,23 @@ body {
   gap: 12px;
 }
 
-#back-btn {
-  background: none;
-  border: none;
-  font-size: 15px;
+#back-btn, #hadith-back-btn, #hadith-book-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--teal);
   cursor: pointer;
-  padding: 6px 0;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+
+#back-btn:hover, #hadith-back-btn:hover, #hadith-book-back-btn:hover {
+  border-color: var(--teal);
 }
 
 .surah-row {
@@ -838,14 +848,14 @@ body {
 .hadith-number-banner {
   background: var(--hadith-banner-bg, #14523f);
   color: var(--hadith-banner-text, #ffffff);
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 700;
   text-align: right;
-  padding: 12px 16px;
+  padding: 9px 14px;
 }
 
 .hadith-card-body {
-  padding: 16px;
+  padding: 14px;
   background: var(--surface-raised);
 }
 
