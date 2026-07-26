@@ -34,7 +34,7 @@
     <!-- READING SCREEN -->
     <div id="reading-screen" class="screen hidden">
       <div class="top-bar reading-top-bar">
-        <button id="back-btn" onclick="showScreen(quranReturnScreen)">&#8592; Back</button>
+        <button id="back-btn" class="back-icon-btn" onclick="showScreen(quranReturnScreen)" aria-label="Back">&#8592;</button>
         <div class="reading-title-block">
           <h2 id="reading-title"></h2>
           <p id="reading-subtitle" class="subtitle"></p>
@@ -123,7 +123,7 @@
     <!-- HADITH BOOK SCREEN (chapter list for the chosen book) -->
     <div id="hadith-book-screen" class="screen hidden">
       <div class="top-bar reading-top-bar">
-        <button id="hadith-book-back-btn" onclick="showScreen('hadith-home-screen')">&#8592; Back</button>
+        <button id="hadith-book-back-btn" class="back-icon-btn" onclick="showScreen('hadith-home-screen')" aria-label="Back">&#8592;</button>
         <div class="reading-title-block">
           <h2 id="hadith-book-title"></h2>
           <p id="hadith-book-subtitle" class="subtitle"></p>
@@ -140,7 +140,7 @@
     <!-- HADITH READING SCREEN -->
     <div id="hadith-reading-screen" class="screen hidden">
       <div class="top-bar reading-top-bar">
-        <button id="hadith-back-btn" onclick="showScreen(hadithReturnScreen)">&#8592; Back</button>
+        <button id="hadith-back-btn" class="back-icon-btn" onclick="showScreen(hadithReturnScreen)" aria-label="Back">&#8592;</button>
         <div class="reading-title-block">
           <h2 id="hadith-reading-title"></h2>
           <p id="hadith-reading-subtitle" class="subtitle"></p>

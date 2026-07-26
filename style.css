@@ -124,26 +124,33 @@ body {
 .reading-top-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-#back-btn, #hadith-back-btn, #hadith-book-back-btn {
-  display: inline-flex;
+.back-icon-btn {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
   color: var(--teal);
   cursor: pointer;
-  padding: 8px 14px;
-  flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-#back-btn:hover, #hadith-back-btn:hover, #hadith-book-back-btn:hover {
+.back-icon-btn:hover {
   border-color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.back-icon-btn:active {
+  transform: scale(0.94);
 }
 
 .surah-row {
@@ -839,7 +846,7 @@ body {
 /* ---------- Hadith card: sunnah.com-style number banner ---------- */
 
 .hadith-card {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
@@ -848,27 +855,27 @@ body {
 .hadith-number-banner {
   background: var(--hadith-banner-bg, #14523f);
   color: var(--hadith-banner-text, #ffffff);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   text-align: right;
-  padding: 9px 14px;
+  padding: 6px 12px;
 }
 
 .hadith-card-body {
-  padding: 14px;
+  padding: 12px;
   background: var(--surface-raised);
 }
 
 .hadith-narrator-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .hadith-narrator-icon {
   color: var(--teal);
-  font-size: 15px;
+  font-size: 13px;
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -876,7 +883,7 @@ body {
 .hadith-narrator-row .hadith-narrator {
   flex: 1;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--teal);
 }

@@ -1003,7 +1003,7 @@ function renderContinueReadingHadith() {
   }
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="continue-card compact-card" onclick="openHadithAtLocation(\'' + lastRead.book + '\', ' + lastRead.chapterId + ', ' + lastRead.index + ')">' +
+    '<div class="continue-card compact-card" onclick="openHadithAtLocation(\'' + lastRead.book + '\', ' + lastRead.chapterId + ', ' + lastRead.index + ', \'hadith-home-screen\')">' +
       '<p class="continue-label">Continue reading</p>' +
       '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(hadith) + '</p>' +
     '</div>';
@@ -1060,7 +1060,7 @@ function renderHadithOfDay() {
 
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="hadith-of-day-card compact-card" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ')">' +
+    '<div class="hadith-of-day-card compact-card" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ', \'hadith-home-screen\')">' +
       '<p class="continue-label">Hadith of the day</p>' +
       '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
     '</div>';
