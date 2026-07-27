@@ -128,6 +128,7 @@
           <h2 id="hadith-book-title"></h2>
           <p id="hadith-book-subtitle" class="subtitle"></p>
         </div>
+        <button class="download-btn" onclick="downloadFullHadithBook()" title="Download full book">&#11015;</button>
       </div>
       <input id="hadith-search-box" type="text" placeholder="Search chapter name" oninput="filterHadithBookList()">
       <div class="hadith-number-search-row">
@@ -145,6 +146,7 @@
           <h2 id="hadith-reading-title"></h2>
           <p id="hadith-reading-subtitle" class="subtitle"></p>
         </div>
+        <button id="download-hadith-chapter-btn" class="download-btn hidden" onclick="downloadCurrentHadithChapter()" title="Download this chapter">&#11015;</button>
       </div>
       <div id="hadith-list"></div>
     </div>

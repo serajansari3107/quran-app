@@ -719,3 +719,24 @@ all six books -- Bukhari, Muslim, Abu Dawud, Tirmidhi, Ibn Majah, and
 an-Nasa'i -- not just Bukhari. Verified against the exact hadith from your
 screenshot (Bukhari 7394, Hudhaifah's narration) -- confirmed matching
 content and banner text.
+
+## 37. Download Hadith as HTML (new, English only)
+
+Same download-as-HTML idea as the Quran feature, added for Hadith:
+- Reading screen (when viewing a full chapter): download icon downloads
+  just that chapter.
+- Book/chapter list screen: download icon downloads the entire book
+  (e.g. all of Sahih al-Bukhari) in one file.
+
+**English only, no content picker** -- unlike the Quran download (which
+lets you choose Arabic/Translation/Transliteration), hadith downloads
+always include just the hadith number, narrator, English text, and grade
+(when available). No Arabic text in the downloaded file, as requested.
+Works for all six books. Verified with real data (Bukhari chapters 1-2):
+confirmed zero Arabic-script characters in the output, well-formed HTML,
+correct chapter titles.
+
+Download button is hidden automatically when viewing a single hadith
+(search result, Hadith of the Day, bookmark) since there's no single
+"chapter" to attach it to in that view -- only shown for full chapter/full
+book views.

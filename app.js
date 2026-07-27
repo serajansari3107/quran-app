@@ -606,11 +606,17 @@ function buildDownloadDocument(bodyHtml, docTitle) {
     '.d-arabic{direction:rtl;text-align:right;font-size:24px;line-height:2;margin:0 0 8px;font-family:"Scheherazade New","Traditional Arabic",serif;}' +
     '.d-translit{font-style:italic;color:#2f6f5e;margin:0 0 6px;font-size:15px;}' +
     '.d-translation{margin:0;font-size:15px;}' +
+    '.d-chapter-title{font-size:19px;margin-top:36px;color:#7a5a1e;border-bottom:1px solid #ddd;padding-bottom:6px;}' +
+    '.d-hadith{margin:16px 0;padding-bottom:14px;border-bottom:1px solid #eee;}' +
+    '.d-hadith-num{display:inline-block;background:#14523f;color:#fff;font-weight:700;font-size:13px;padding:4px 10px;border-radius:3px;margin:0 0 8px;}' +
+    '.d-hadith-narrator{font-weight:600;color:#2f6f5e;margin:0 0 6px;font-size:14px;}' +
+    '.d-hadith-english{margin:0 0 6px;font-size:15px;}' +
+    '.d-hadith-grade{margin:0;font-size:12px;color:#888;}' +
     '.d-footer{margin-top:40px;font-size:12px;color:#999;text-align:center;}' +
     '</style></head><body>' +
     '<h1>' + docTitle + '</h1>' +
     bodyHtml +
-    '<p class="d-footer">Generated from your Al-Quran (Roman Urdu) offline app.</p>' +
+    '<p class="d-footer">Generated from your offline Quran &amp; Hadith app.</p>' +
     '</body></html>';
 }
 
@@ -648,6 +654,54 @@ function confirmDownload(mode) {
   }
 
   closeDownloadModal();
+}
+
+// ---------- Hadith download as HTML (English only, per user's request) ----------
+
+function buildHadithDownloadHtml(hadith) {
+  const displayNum = hadithDisplayNumber(hadith);
+  let out = '<div class="d-hadith">';
+  out += '<span class="d-hadith-num">Hadith ' + displayNum + '</span>';
+  if (hadith.narrator) out += '<p class="d-hadith-narrator">' + hadith.narrator + '</p>';
+  out += '<p class="d-hadith-english">' + hadith.english + '</p>';
+  if (hadith.grade) out += '<p class="d-hadith-grade">Grade: ' + hadith.grade + '</p>';
+  out += '</div>';
+  return out;
+}
+
+function buildHadithChapterSectionHtml(chapterId, info) {
+  const meta = info.list().find(function (c) { return c.chapterId === chapterId; });
+  const data = window[info.varPrefix + String(chapterId).padStart(3, '0')];
+  if (!meta || !data || data.isPlaceholder) return '';
+
+  let out = '<h2 class="d-chapter-title">' + meta.englishTitle + '</h2>';
+  out += data.hadiths.map(function (h) {
+    return buildHadithDownloadHtml(h);
+  }).join('');
+  return out;
+}
+
+function downloadCurrentHadithChapter() {
+  if (!currentOpenHadithChapter) return;
+  const info = HADITH_BOOKS[currentHadithBook];
+  const meta = info.list().find(function (c) { return c.chapterId === currentOpenHadithChapter; });
+  if (!meta) return;
+
+  const body = buildHadithChapterSectionHtml(currentOpenHadithChapter, info);
+  const title = info.label + ' \u2014 ' + meta.englishTitle + ' (English)';
+  const html = buildDownloadDocument(body, title);
+  triggerHtmlDownload(info.label.replace(/\s+/g, '-') + '-' + meta.englishTitle.replace(/\s+/g, '-') + '.html', html);
+}
+
+function downloadFullHadithBook() {
+  const info = HADITH_BOOKS[currentHadithBook];
+  let body = '';
+  info.list().forEach(function (c) {
+    body += buildHadithChapterSectionHtml(c.chapterId, info);
+  });
+  const title = info.label + ' \u2014 Full Book (English)';
+  const html = buildDownloadDocument(body, title);
+  triggerHtmlDownload(info.label.replace(/\s+/g, '-') + '-Full.html', html);
 }
 
 // ---------- Hadith (Sahih al-Bukhari / Sahih Muslim) ----------
@@ -834,6 +888,7 @@ function buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadith
 // bookmarkable via its own (chapterId, index), so nothing is ambiguous.
 function renderHadithResults(matches, info) {
   showScreen('hadith-reading-screen');
+  document.getElementById('download-hadith-chapter-btn').classList.add('hidden');
   const hadithDisplayMode = loadJSON('hadithDisplayMode', 'english');
   const hadithBookmarks = loadJSON('hadithBookmarks', []);
 
@@ -884,6 +939,7 @@ function openHadithChapter(chapterId) {
   showScreen('hadith-reading-screen');
   document.getElementById('hadith-reading-title').textContent = meta.englishTitle;
   document.getElementById('hadith-reading-subtitle').textContent = info.label + ' \u00b7 ' + meta.hadithCount + ' hadiths';
+  document.getElementById('download-hadith-chapter-btn').classList.remove('hidden');
 
   const list = document.getElementById('hadith-list');
 
