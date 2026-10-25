@@ -568,7 +568,6 @@ function updateReadingPanel() {
     btn.classList.toggle('active', btn.getAttribute('data-fontstyle') === fontStyle);
   });
 }
-}
 
 function onArabicSizeChange(value) {
   saveJSON('arabicFontSize', Number(value));
@@ -966,19 +965,50 @@ function openHadithBook(book) {
   document.getElementById('hadith-book-title').textContent = info.label;
   document.getElementById('hadith-book-subtitle').textContent = info.chapterCount + ' chapters \u00b7 offline';
   document.getElementById('hadith-search-box').value = '';
+  renderHadithBookHero(book, info);
   renderHadithBookList(info.list());
+}
+
+const HD_ICON_BOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg>';
+const HD_ICON_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+const HD_ICON_CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
+const HADITH_BOOK_ARABIC = {
+  bukhari: 'صحيح البخاري',
+  muslim: 'صحيح مسلم',
+  abudawud: 'سنن أبي داود',
+  tirmidhi: 'جامع الترمذي',
+  ibnmajah: 'سنن ابن ماجه',
+  nasai: 'سنن النسائي'
+};
+
+function renderHadithBookHero(book, info) {
+  const list = info.list();
+  const total = list.reduce(function (s, c) { return s + c.hadithCount; }, 0);
+  document.getElementById('hadith-book-hero').innerHTML =
+    '<div class="sr-header hd-hero">' +
+      '<div class="sr-badge">' + HD_ICON_BOOK + '</div>' +
+      '<p class="hd-hero-ar">' + (HADITH_BOOK_ARABIC[book] || '') + '</p>' +
+      '<p class="hd-hero-name">' + info.label + '</p>' +
+      '<span class="sr-meta">' + list.length + ' chapters &middot; ' + total.toLocaleString('en-US') + ' hadiths</span>' +
+    '</div>';
 }
 
 function renderHadithBookList(list) {
   const container = document.getElementById('hadith-book-list');
+  if (list.length === 0) {
+    container.innerHTML = '<p class="hd-empty">No chapter found. Try a different word.</p>';
+    return;
+  }
   container.innerHTML = list.map(function (c) {
     return (
-      '<div class="surah-row" onclick="openHadithChapter(' + c.chapterId + ')">' +
-        '<div class="surah-number">' + c.chapterId + '</div>' +
-        '<div class="surah-info">' +
-          '<p class="name">' + c.englishTitle + '</p>' +
-          '<p class="meta">Hadith ' + (c.displayFirstNumber || c.firstNumber) + '\u2013' + (c.displayLastNumber || c.lastNumber) + ' &middot; ' + c.hadithCount + ' hadiths</p>' +
+      '<div class="hd-chapter-row" onclick="openHadithChapter(' + c.chapterId + ')">' +
+        '<div class="hd-chapter-num">' + c.chapterId + '</div>' +
+        '<div class="hd-chapter-info">' +
+          '<p class="hd-chapter-name">' + c.englishTitle + '</p>' +
+          '<p class="hd-chapter-meta">Hadith ' + (c.displayFirstNumber || c.firstNumber) + '\u2013' + (c.displayLastNumber || c.lastNumber) + ' &middot; ' + c.hadithCount + ' hadiths</p>' +
         '</div>' +
+        '<span class="hd-chevron">' + HD_ICON_CHEVRON + '</span>' +
       '</div>'
     );
   }).join('');
@@ -1072,27 +1102,47 @@ function hadithMatchesNumber(hadith, num, suffix) {
 
 function buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadithDisplayMode, chapterId, index) {
   const displayNum = hadithDisplayNumber(hadith);
-  const arabicBlock = hadithDisplayMode === 'english' ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
+  const arabicBlock = (hadithDisplayMode === 'english' || !hadith.arabic) ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
   const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.chapterId === chapterId && b.index === index; });
-  const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
-  const starSymbol = isBookmarked ? '\u2605' : '\u2606';
+  const bookmarkClass = isBookmarked ? 'ay-btn ay-bookmark active' : 'ay-btn ay-bookmark';
   const domId = 'hadith-' + bookKey + '-' + chapterId + '-' + index;
+  const chapterName = chapter && chapter.englishTitle ? ' \u00b7 ' + chapter.englishTitle : '';
 
   return (
-    '<div class="hadith-card" id="' + domId + '">' +
-      '<div class="hadith-number-banner">' + info.label + ' ' + displayNum + '</div>' +
-      '<div class="hadith-card-body">' +
-        '<div class="hadith-narrator-row">' +
-          '<span class="hadith-narrator-icon">&#128173;</span>' +
-          (hadith.narrator ? '<p class="hadith-narrator">' + hadith.narrator + '</p>' : '<span></span>') +
-          '<button class="' + starClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + chapterId + ',' + index + ')">' + starSymbol + '</button>' +
-        '</div>' +
-        arabicBlock +
-        '<p class="hadith-english-text">' + hadith.english + '</p>' +
-        (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
+    '<div class="hadith-card hd-card" id="' + domId + '">' +
+      '<div class="hd-card-top">' +
+        '<span class="hd-num-pill">Hadith ' + displayNum + '</span>' +
+        '<button class="' + bookmarkClass + '" onclick="toggleHadithBookmark(\'' + bookKey + '\',' + chapterId + ',' + index + ')" aria-label="Bookmark hadith" title="Bookmark">' + ICON_BOOKMARK + '</button>' +
       '</div>' +
+      (hadith.narrator ? '<div class="hd-narrator"><span class="hd-narrator-icon">' + HD_ICON_USER + '</span><p class="hadith-narrator">' + hadith.narrator + '</p></div>' : '') +
+      arabicBlock +
+      '<p class="hadith-english-text">' + hadith.english + '</p>' +
+      (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
+      '<div class="hd-source">' + HD_ICON_BOOK + '<span>' + info.label + ' \u00b7 Hadith ' + displayNum + chapterName + '</span></div>' +
     '</div>'
   );
+}
+
+function buildHadithChapterHeader(meta, info) {
+  return (
+    '<div class="sr-header">' +
+      '<div class="sr-badge">' + meta.chapterId + '</div>' +
+      '<p class="sr-name">' + meta.englishTitle + '</p>' +
+      (meta.arabicTitle ? '<p class="hd-chapter-ar">' + meta.arabicTitle + '</p>' : '') +
+      '<span class="sr-meta">' + info.label + ' &middot; Hadith ' + (meta.displayFirstNumber || meta.firstNumber) + '\u2013' + (meta.displayLastNumber || meta.lastNumber) + ' &middot; ' + meta.hadithCount + ' hadiths</span>' +
+    '</div>'
+  );
+}
+
+function buildHadithChapterNav(chapterId, info) {
+  const chapters = info.list();
+  const pos = chapters.findIndex(function (c) { return c.chapterId === chapterId; });
+  const prev = pos > 0 ? chapters[pos - 1] : null;
+  const next = pos >= 0 && pos < chapters.length - 1 ? chapters[pos + 1] : null;
+  return buildReadingNav({
+    prev: prev ? { label: prev.chapterId + '. ' + prev.englishTitle, onclick: 'openHadithChapter(' + prev.chapterId + ')' } : null,
+    next: next ? { label: next.chapterId + '. ' + next.englishTitle, onclick: 'openHadithChapter(' + next.chapterId + ')' } : null
+  });
 }
 
 // Renders one hadith, or several when a number is genuinely shared by more
@@ -1112,9 +1162,13 @@ function renderHadithResults(matches, info) {
     document.getElementById('hadith-reading-subtitle').textContent = info.label + ' \u00b7 this number is shared by more than one hadith';
   }
 
-  document.getElementById('hadith-list').innerHTML = matches.map(function (m) {
+  const cardsHtml = matches.map(function (m) {
     return buildHadithCard(m.hadith, m.chapter, info, currentHadithBook, hadithBookmarks, hadithDisplayMode, m.chapterId, m.index);
   }).join('');
+  const readChapterBtn = matches.length === 1
+    ? '<button class="hd-read-chapter" onclick="openHadithChapter(' + matches[0].chapterId + ')">' + HD_ICON_BOOK + 'Read full chapter</button>'
+    : '';
+  document.getElementById('hadith-list').innerHTML = cardsHtml + readChapterBtn;
 
   resetReadingScroll();
 }
@@ -1176,9 +1230,12 @@ function openHadithChapter(chapterId) {
 
   saveJSON('hadithLastRead', { book: currentHadithBook, chapterId: chapterId, index: 0 });
 
-  list.innerHTML = data.hadiths.map(function (h, index) {
-    return buildHadithCard(h, meta, info, bookKey, hadithBookmarks, hadithDisplayMode, chapterId, index);
-  }).join('');
+  list.innerHTML =
+    buildHadithChapterHeader(meta, info) +
+    data.hadiths.map(function (h, index) {
+      return buildHadithCard(h, meta, info, bookKey, hadithBookmarks, hadithDisplayMode, chapterId, index);
+    }).join('') +
+    buildHadithChapterNav(chapterId, info);
 
   resetReadingScroll();
 }
@@ -1243,11 +1300,11 @@ function toggleHadithBookmark(book, chapterId, index) {
   }
   saveJSON('hadithBookmarks', bookmarks);
 
-  const btn = document.querySelector('#hadith-' + book + '-' + chapterId + '-' + index + ' .bookmark-btn');
+  const btn = document.querySelector('#hadith-' + book + '-' + chapterId + '-' + index + ' .ay-bookmark');
   if (btn) {
     btn.classList.toggle('active', nowBookmarked);
-    btn.textContent = nowBookmarked ? '\u2605' : '\u2606';
   }
+  showToast(nowBookmarked ? 'Bookmark added' : 'Bookmark removed');
 }
 
 // ---------- Hadith: Continue Reading ----------
@@ -1593,7 +1650,6 @@ function applyArabicFontStyle() {
   document.getElementById('font-indopak').classList.toggle('active', style === 'indopak');
   document.getElementById('font-uthmani').classList.toggle('active', style === 'uthmani');
   updateReadingPanel();
-}
 }
 
 // ---------- What's New (reads whats-new.txt) ----------

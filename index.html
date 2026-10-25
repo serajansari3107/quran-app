@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Al-Quran (Roman Urdu)</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="hadith.css">
 </head>
 <body>
 
@@ -157,9 +158,12 @@
 
     <!-- HADITH HOME SCREEN (choose a book) -->
     <div id="hadith-home-screen" class="screen hidden">
-      <div class="top-bar">
-        <h1>Hadith</h1>
-        <p class="subtitle">Choose a collection &middot; offline</p>
+      <div class="top-bar hd-home-bar">
+        <div class="hd-home-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+        <div class="hd-home-title">
+          <h1>Hadith Library</h1>
+          <p class="subtitle">6 collections &middot; offline</p>
+        </div>
       </div>
 
       <div id="hadith-continue-reading" class="hidden"></div>
@@ -168,28 +172,58 @@
       <p class="section-divider-label">Collections</p>
       <div class="hadith-book-choice">
         <div class="hadith-collection-card" onclick="openHadithBook('bukhari')">
-          <p class="continue-label">Sahih al-Bukhari</p>
-          <p class="continue-title">97 chapters &middot; 7,277 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Sahih al-Bukhari</p>
+            <p class="hd-book-ar">صحيح البخاري</p>
+            <p class="hd-book-meta">97 chapters &middot; 7,277 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="hadith-collection-card" onclick="openHadithBook('muslim')">
-          <p class="continue-label">Sahih Muslim</p>
-          <p class="continue-title">57 chapters &middot; 7,459 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Sahih Muslim</p>
+            <p class="hd-book-ar">صحيح مسلم</p>
+            <p class="hd-book-meta">57 chapters &middot; 7,459 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="hadith-collection-card" onclick="openHadithBook('abudawud')">
-          <p class="continue-label">Sunan Abu Dawud</p>
-          <p class="continue-title">43 chapters &middot; 5,274 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Sunan Abu Dawud</p>
+            <p class="hd-book-ar">سنن أبي داود</p>
+            <p class="hd-book-meta">43 chapters &middot; 5,276 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="hadith-collection-card" onclick="openHadithBook('tirmidhi')">
-          <p class="continue-label">Jami' at-Tirmidhi</p>
-          <p class="continue-title">49 chapters &middot; 4,053 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Jami' at-Tirmidhi</p>
+            <p class="hd-book-ar">جامع الترمذي</p>
+            <p class="hd-book-meta">49 chapters &middot; 4,053 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="hadith-collection-card" onclick="openHadithBook('ibnmajah')">
-          <p class="continue-label">Sunan Ibn Majah</p>
-          <p class="continue-title">38 chapters &middot; 4,345 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Sunan Ibn Majah</p>
+            <p class="hd-book-ar">سنن ابن ماجه</p>
+            <p class="hd-book-meta">38 chapters &middot; 4,345 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
         <div class="hadith-collection-card" onclick="openHadithBook('nasai')">
-          <p class="continue-label">Sunan an-Nasa'i</p>
-          <p class="continue-title">52 chapters &middot; 5,685 hadiths</p>
+          <div class="hd-book-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+          <div class="hd-book-text">
+            <p class="hd-book-name">Sunan an-Nasa'i</p>
+            <p class="hd-book-ar">سنن النسائي</p>
+            <p class="hd-book-meta">52 chapters &middot; 5,685 hadiths</p>
+          </div>
+          <span class="hd-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
         </div>
       </div>
     </div>
@@ -202,9 +236,13 @@
           <h2 id="hadith-book-title"></h2>
           <p id="hadith-book-subtitle" class="subtitle"></p>
         </div>
-        <button class="download-btn" onclick="downloadFullHadithBook()" title="Download full book">&#11015;</button>
+        <button class="download-btn" onclick="downloadFullHadithBook()" title="Download full book" aria-label="Download full book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
       </div>
-      <input id="hadith-search-box" type="text" placeholder="Search chapter name" oninput="filterHadithBookList()">
+      <div id="hadith-book-hero"></div>
+      <div class="hd-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="hadith-search-box" type="text" placeholder="Search chapter name" oninput="filterHadithBookList()">
+      </div>
       <div class="hadith-number-search-row">
         <input id="hadith-number-search-box" type="text" placeholder="Search by hadith number, e.g. 700" onkeydown="if(event.key==='Enter') searchHadithByNumber()">
         <button onclick="searchHadithByNumber()">Go</button>
@@ -220,7 +258,7 @@
           <h2 id="hadith-reading-title"></h2>
           <p id="hadith-reading-subtitle" class="subtitle"></p>
         </div>
-        <button id="download-hadith-chapter-btn" class="download-btn hidden" onclick="downloadCurrentHadithChapter()" title="Download this chapter">&#11015;</button>
+        <button id="download-hadith-chapter-btn" class="download-btn hidden" onclick="downloadCurrentHadithChapter()" title="Download this chapter" aria-label="Download this chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
       </div>
       <div id="hadith-list"></div>
     </div>

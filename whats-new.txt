@@ -10,6 +10,12 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.2 | 25-Oct-2026
+- Premium Hadith Library with new cards for all 6 books
+- Clean chapter list with chapter search and hadith number search
+- Redesigned hadith cards: number, narrator, Arabic, English, grade and source
+- Previous / Next chapter navigation while reading hadith
+
 ## v1.1 | 25-Oct-2026
 - Premium Quran reading screen with Surah header and Bismillah
 - Bookmark and Share buttons on every ayah
