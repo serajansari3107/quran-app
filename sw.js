@@ -1,10 +1,11 @@
-const CACHE_NAME = "quran-app-v47";
+const CACHE_NAME = "quran-app-v48";
 
 const ASSETS_TO_CACHE = [
   "./",
   "index.html",
   "style.css",
   "hadith.css",
+  "polish.css",
   "app.js",
   "manifest.json",
   "whats-new.txt",

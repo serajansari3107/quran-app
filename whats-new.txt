@@ -10,6 +10,12 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.3 | 25-Oct-2026
+- Premium polish on every screen: Bookmarks, Settings, Salah and popups
+- Cleaner tabs, buttons, cards and empty states in one consistent style
+- Smooth, subtle transitions (respects reduced-motion setting)
+- Better fit on small phones and PC
+
 ## v1.2 | 25-Oct-2026
 - Premium Hadith Library with new cards for all 6 books
 - Clean chapter list with chapter search and hadith number search
