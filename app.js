@@ -105,22 +105,29 @@ function filterSurahList() {
 function renderContinueReading() {
   const box = document.getElementById('continue-reading');
   const lastRead = loadJSON('lastRead', null);
-  if (!lastRead) {
-    box.innerHTML = '';
-    box.classList.add('hidden');
-    return;
-  }
-  const meta = surahList.find(function (s) { return s.number === lastRead.surah; });
-  if (!meta) {
-    box.innerHTML = '';
-    box.classList.add('hidden');
-    return;
-  }
+  const lastMeta = lastRead && surahList.find(function (s) { return s.number === lastRead.surah; });
   box.classList.remove('hidden');
+
+  // Nothing read yet -> invite the user to start from Al-Fatiha
+  if (!lastMeta) {
+    box.innerHTML =
+      '<div class="hm-hero" onclick="openSurah(1)">' +
+        '<p class="hm-hero-label">Start reading</p>' +
+        '<p class="hm-hero-title">Al-Fatiha</p>' +
+        '<p class="hm-hero-meta">The Opening &middot; 7 ayahs</p>' +
+        '<span class="hm-hero-btn">Begin &rarr;</span>' +
+      '</div>';
+    return;
+  }
+
+  const percent = Math.min(100, Math.round((lastRead.ayah / lastMeta.totalAyahs) * 100));
   box.innerHTML =
-    '<div class="continue-card compact-card" onclick="openSurah(' + lastRead.surah + ', ' + lastRead.ayah + ')">' +
-      '<p class="continue-label">Continue reading</p>' +
-      '<p class="continue-title">' + meta.nameEnglish + ' &middot; Ayah ' + lastRead.ayah + '</p>' +
+    '<div class="hm-hero" onclick="openSurah(' + lastRead.surah + ', ' + lastRead.ayah + ')">' +
+      '<p class="hm-hero-label">Continue reading</p>' +
+      '<p class="hm-hero-title">' + lastMeta.nameEnglish + '</p>' +
+      '<p class="hm-hero-meta">Ayah ' + lastRead.ayah + ' of ' + lastMeta.totalAyahs + ' &middot; ' + percent + '%</p>' +
+      '<div class="hm-progress"><span style="width:' + percent + '%"></span></div>' +
+      '<span class="hm-hero-btn">Continue &rarr;</span>' +
     '</div>';
 }
 
@@ -399,6 +406,7 @@ function showScreen(id) {
   if (id === 'home-screen') {
     renderContinueReading();
     renderAyahOfDay();
+    renderHadithOfDay();
   }
   if (id === 'bookmarks-screen') setBookmarksTab(currentBookmarksTab);
   if (id === 'salah-screen') renderSalahScreen();
@@ -539,11 +547,24 @@ function renderAyahOfDay() {
   }
   const meta = surahList.find(function (s) { return s.number === chosenSurah; });
 
+  const ayah = data.ayahs.find(function (a) { return a.number === chosenAyah; });
+  if (!ayah) {
+    box.classList.add('hidden');
+    return;
+  }
+  const lang = loadJSON('translationLanguage', 'romanUrdu');
+  const translationText = (lang === 'english' ? ayah.english : ayah.romanUrdu) || '';
+
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="ayah-of-day-card compact-card" onclick="openSingleAyah(' + chosenSurah + ', ' + chosenAyah + ')">' +
-      '<p class="continue-label">Ayah of the day</p>' +
-      '<p class="continue-title">' + meta.nameEnglish + ' \u00b7 Ayah ' + chosenAyah + '</p>' +
+    '<div class="hm-card" onclick="openSingleAyah(' + chosenSurah + ', ' + chosenAyah + ')">' +
+      '<p class="hm-card-label">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>' +
+        'Daily Ayah' +
+      '</p>' +
+      '<p class="hm-arabic">' + ayah.arabic + '</p>' +
+      (translationText.trim() ? '<p class="hm-text">' + translationText + '</p>' : '') +
+      '<p class="hm-ref">' + meta.nameEnglish + ' \u00b7 Ayah ' + chosenAyah + '</p>' +
     '</div>';
 }
 
@@ -1109,8 +1130,10 @@ function renderHadithOfDay() {
 
   const info = HADITH_BOOKS[book];
   const picked = pickHadithByFlatIndex(info, flatIndex);
+  const homeBox = document.getElementById('home-hadith-of-day');
   if (!picked) {
     box.classList.add('hidden');
+    homeBox.classList.add('hidden');
     return;
   }
 
@@ -1119,6 +1142,18 @@ function renderHadithOfDay() {
     '<div class="hadith-of-day-card compact-card" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ', \'hadith-home-screen\')">' +
       '<p class="continue-label">Hadith of the day</p>' +
       '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
+    '</div>';
+
+  // Same hadith, shown as a premium card on the Home screen
+  homeBox.classList.remove('hidden');
+  homeBox.innerHTML =
+    '<div class="hm-card hm-card-hadith" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ', \'home-screen\')">' +
+      '<p class="hm-card-label">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>' +
+        'Daily Hadith' +
+      '</p>' +
+      '<p class="hm-text">' + (picked.hadith.english || '') + '</p>' +
+      '<p class="hm-ref">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
     '</div>';
 }
 
@@ -1284,7 +1319,7 @@ function applyDisplayMode() {
 // ---------- Theme (Midnight Navy / Charcoal / Sepia) ----------
 
 const THEME_BG_COLORS = {
-  navy: '#0a0e1a',
+  navy: '#071426',
   charcoal: '#0d0d0d',
   sepia: '#f5ecd9'
 };
@@ -1377,6 +1412,7 @@ surahList.forEach(function (s) {
 renderSurahList(surahList);
 renderContinueReading();
 renderAyahOfDay();
+renderHadithOfDay();
 applyTheme();
 applyFontSizes();
 applyArabicFontStyle();

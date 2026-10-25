@@ -38,17 +38,17 @@
 }
 
 :root {
-  --bg: #0a0e1a;
-  --surface: #101828;
-  --surface-raised: #16213a;
-  --border: #223049;
-  --text-primary: #e9edf5;
-  --text-secondary: #8b96ac;
-  --text-muted: #5c6885;
-  --teal: #4fd1c5;
-  --teal-soft: #16342f;
-  --gold: #d9b76a;
-  --gold-soft: #3a3122;
+  --bg: #071426;
+  --surface: #0a1b33;
+  --surface-raised: #0f2442;
+  --border: #1a3558;
+  --text-primary: #e9eef7;
+  --text-secondary: #92a3bf;
+  --text-muted: #607596;
+  --teal: #3b82f6;
+  --teal-soft: #12305c;
+  --gold: #d6b56d;
+  --gold-soft: #33301f;
   --cream: #e8dcc0;
   --arabic-font-size: 20px;
   --translation-font-size: 19px;
@@ -272,10 +272,11 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
+  z-index: 20;
   display: flex;
   background: var(--surface-raised);
   border-top: 1px solid var(--border);
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  padding: 8px 6px max(8px, env(safe-area-inset-bottom));
 }
 
 
@@ -284,7 +285,8 @@ body {
   text-align: center;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px 0;
+  padding: 2px 0;
+  transition: color 0.15s ease;
 }
 
 .nav-item.active {
@@ -292,8 +294,23 @@ body {
 }
 
 .nav-icon {
-  font-size: 19px;
-  line-height: 1;
+  width: 52px;
+  height: 30px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  transition: background 0.15s ease;
+}
+
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-item.active .nav-icon {
+  background: var(--teal-soft);
 }
 
 .nav-label {
@@ -892,4 +909,373 @@ body {
   flex-shrink: 0;
   margin: 0;
   padding: 0;
+}
+
+
+/* ---------- Premium Home Screen (Step 1) ---------- */
+
+#app {
+  padding-bottom: 84px;
+}
+
+.home-header {
+  padding: 22px 16px 14px;
+  background: linear-gradient(180deg, var(--surface-raised) 0%, var(--surface) 100%);
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.home-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+}
+
+.home-logo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.home-greeting {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: var(--gold);
+}
+
+.home-brand h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.home-search {
+  position: relative;
+}
+
+.home-search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.home-search #search-box {
+  padding: 12px 14px 12px 42px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+.home-body {
+  padding: 4px 16px 8px;
+}
+
+#continue-reading,
+#ayah-of-day,
+#home-hadith-of-day {
+  margin-top: 14px;
+}
+
+/* Continue reading (hero card) */
+
+.hm-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  box-shadow: 0 10px 28px rgba(59, 130, 246, 0.28);
+}
+
+.hm-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hm-hero-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hm-hero-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hm-hero-meta {
+  margin: 4px 0 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hm-progress {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.hm-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #d6b56d;
+}
+
+.hm-hero-btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #071426;
+  background: #ffffff;
+}
+
+/* Daily Ayah / Daily Hadith cards */
+
+.home-daily-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.hm-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  cursor: pointer;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.hm-card:hover {
+  border-color: var(--teal);
+}
+
+.hm-card:active {
+  transform: scale(0.99);
+}
+
+.hm-card-hadith {
+  border-top-color: var(--teal);
+}
+
+.hm-card-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hm-card-hadith .hm-card-label {
+  color: var(--teal);
+}
+
+.hm-card-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.hm-arabic {
+  margin: 0 0 8px;
+  direction: rtl;
+  text-align: right;
+  font-family: var(--arabic-font-family);
+  font-size: 20px;
+  line-height: 2.1;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hm-text {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--cream);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hm-ref {
+  margin: auto 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Quran / Hadith navigation cards */
+
+.home-nav-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.home-nav-card {
+  padding: 16px;
+  border-radius: 18px;
+  cursor: pointer;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.home-nav-card:hover {
+  border-color: var(--teal);
+}
+
+.home-nav-card:active {
+  transform: scale(0.98);
+}
+
+.home-nav-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.home-nav-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.home-nav-card-gold .home-nav-icon {
+  color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.home-nav-title {
+  margin: 0 0 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.home-nav-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.home-section-title {
+  margin: 24px 2px 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Surah / Juz list on Home */
+
+#home-screen .list-toggle {
+  padding: 10px 0 6px;
+}
+
+#home-screen .toggle-btn {
+  padding: 10px;
+  border-radius: 12px;
+}
+
+#home-screen .surah-row {
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-raised);
+}
+
+#home-screen .surah-row:hover {
+  border-color: var(--teal);
+}
+
+#home-screen .surah-number {
+  border-radius: 10px;
+}
+
+/* ---------- Tablet / PC ---------- */
+
+@media (min-width: 768px) {
+  #app {
+    max-width: 860px;
+  }
+
+  #bottom-nav {
+    max-width: 860px;
+  }
+
+  .home-header {
+    padding: 28px 28px 18px;
+  }
+
+  .home-body {
+    padding: 4px 28px 8px;
+  }
+
+  .home-daily-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 14px;
+  }
+
+  .hm-arabic {
+    font-size: 22px;
+  }
+
+  #home-screen #surah-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 10px;
+  }
 }
