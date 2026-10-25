@@ -139,6 +139,71 @@ let currentOpenHadithChapter = null;
 let quranReturnScreen = 'home-screen';
 let hadithReturnScreen = 'hadith-book-screen';
 
+const ICON_BOOKMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg>';
+const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>';
+
+// Bismillah is shown above every surah except Al-Fatiha (it is ayah 1 there) and At-Tawbah.
+// The text is NOT duplicated: it is read from Al-Fatiha ayah 1 in data/001-al-fatiha.js.
+function buildBismillah(surahNumber, lang, translitStyle, displayMode) {
+  if (surahNumber === 1 || surahNumber === 9) return '';
+  const source = window.surah001 && window.surah001.ayahs[0];
+  if (!source) return '';
+
+  if (displayMode === 'translation') {
+    const text = lang === 'english' ? source.english : source.romanUrdu;
+    return text ? '<p class="bismillah bismillah-latin">' + text + '</p>' : '';
+  }
+  if (displayMode === 'transliteration') {
+    const text = translitStyle === 'b' ? source.transliterationB : source.transliteration;
+    return text ? '<p class="bismillah bismillah-latin">' + text + '</p>' : '';
+  }
+  return '<p class="bismillah">' + source.arabic.replace(/\uFEFF/g, '').trim() + '</p>';
+}
+
+function buildSurahHeader(meta) {
+  return (
+    '<div class="sr-header">' +
+      '<div class="sr-badge">' + meta.number + '</div>' +
+      '<h2 class="sr-name">' + meta.nameEnglish + '</h2>' +
+      '<p class="sr-meaning">' + meta.meaning + '</p>' +
+      '<p class="sr-meta">' + meta.totalAyahs + ' Ayahs</p>' +
+    '</div>'
+  );
+}
+
+function buildReadingNav(items) {
+  // items = { prev: { label, onclick } | null, next: { label, onclick } | null }
+  if (!items.prev && !items.next) return '';
+  function button(item, direction, caption) {
+    if (!item) return '<span class="rd-nav-spacer"></span>';
+    return (
+      '<button class="rd-nav-btn ' + direction + '" onclick="' + item.onclick + '">' +
+        '<span class="rd-nav-dir">' + caption + '</span>' +
+        '<span class="rd-nav-name">' + item.label + '</span>' +
+      '</button>'
+    );
+  }
+  return '<div class="rd-nav">' + button(items.prev, 'prev', '\u2190 Previous') + button(items.next, 'next', 'Next \u2192') + '</div>';
+}
+
+function buildSurahNav(number) {
+  const prev = surahList.find(function (s) { return s.number === number - 1; });
+  const next = surahList.find(function (s) { return s.number === number + 1; });
+  return buildReadingNav({
+    prev: prev ? { label: prev.number + '. ' + prev.nameEnglish, onclick: 'openSurah(' + prev.number + ', undefined, quranReturnScreen)' } : null,
+    next: next ? { label: next.number + '. ' + next.nameEnglish, onclick: 'openSurah(' + next.number + ', undefined, quranReturnScreen)' } : null
+  });
+}
+
+function buildJuzNav(juzNumber) {
+  const prev = juzList.find(function (j) { return j.number === juzNumber - 1; });
+  const next = juzList.find(function (j) { return j.number === juzNumber + 1; });
+  return buildReadingNav({
+    prev: prev ? { label: 'Juz ' + prev.number, onclick: 'openJuz(' + prev.number + ', quranReturnScreen)' } : null,
+    next: next ? { label: 'Juz ' + next.number, onclick: 'openJuz(' + next.number + ', quranReturnScreen)' } : null
+  });
+}
+
 function buildReadingAyahCard(surahNumber, ayah, bookmarks, lang, translitStyle, displayMode) {
   const translitText = translitStyle === 'b' ? ayah.transliterationB : ayah.transliteration;
   const translit = translitText
@@ -163,17 +228,22 @@ function buildReadingAyahCard(surahNumber, ayah, bookmarks, lang, translitStyle,
   }
 
   const isBookmarked = bookmarks.some(function (b) { return b.surah === surahNumber && b.ayah === ayah.number; });
-  const starClass = isBookmarked ? 'bookmark-btn active' : 'bookmark-btn';
-  const starSymbol = isBookmarked ? '\u2605' : '\u2606';
+  const bookmarkClass = isBookmarked ? 'ay-btn ay-bookmark active' : 'ay-btn ay-bookmark';
 
   return (
     '<div class="ayah-card" id="ayah-' + surahNumber + '-' + ayah.number + '">' +
       '<div class="ayah-card-header">' +
-        '<p class="ayah-number">Ayah ' + ayah.number + '</p>' +
-        '<button class="' + starClass + '" onclick="toggleBookmark(' + surahNumber + ',' + ayah.number + ')">' + starSymbol + '</button>' +
+        '<div class="ay-meta">' +
+          '<span class="ay-num">' + ayah.number + '</span>' +
+          '<span class="ay-ref">' + surahNumber + ':' + ayah.number + '</span>' +
+        '</div>' +
+        '<div class="ay-actions">' +
+          '<button class="' + bookmarkClass + '" onclick="toggleBookmark(' + surahNumber + ',' + ayah.number + ')" aria-label="Bookmark ayah" title="Bookmark">' + ICON_BOOKMARK + '</button>' +
+          '<button class="ay-btn" onclick="shareAyah(' + surahNumber + ',' + ayah.number + ')" aria-label="Share ayah" title="Share">' + ICON_SHARE + '</button>' +
+        '</div>' +
       '</div>' +
       arabicBlock +
-      translationBlock +
+      (translationBlock ? '<div class="ay-trans">' + translationBlock + '</div>' : '') +
     '</div>'
   );
 }
@@ -219,6 +289,7 @@ function openJuz(juzNumber, returnTo) {
     const toAyah = (surahNum === juz.endSurah) ? juz.endAyah : meta.totalAyahs;
 
     html += '<p class="juz-surah-heading">' + surahNum + '. ' + meta.nameEnglish + '</p>';
+    if (fromAyah === 1) html += buildBismillah(surahNum, lang, translitStyle, displayMode);
 
     for (let i = 0; i < data.ayahs.length; i++) {
       const ayah = data.ayahs[i];
@@ -227,7 +298,7 @@ function openJuz(juzNumber, returnTo) {
     }
   }
 
-  ayahList.innerHTML = html;
+  ayahList.innerHTML = html + buildJuzNav(juzNumber);
   saveJSON('lastRead', { surah: juz.startSurah, ayah: juz.startAyah });
   resetReadingScroll();
 }
@@ -261,9 +332,13 @@ function openSurah(number, scrollToAyah, returnTo) {
   const translitStyle = loadJSON('transliterationStyle', 'b');
   const displayMode = loadJSON('displayMode', 'both');
 
-  ayahList.innerHTML = data.ayahs.map(function (ayah) {
-    return buildReadingAyahCard(number, ayah, bookmarks, lang, translitStyle, displayMode);
-  }).join('');
+  ayahList.innerHTML =
+    buildSurahHeader(meta) +
+    buildBismillah(number, lang, translitStyle, displayMode) +
+    data.ayahs.map(function (ayah) {
+      return buildReadingAyahCard(number, ayah, bookmarks, lang, translitStyle, displayMode);
+    }).join('') +
+    buildSurahNav(number);
 
   saveJSON('lastRead', { surah: number, ayah: scrollToAyah || 1 });
 
@@ -291,11 +366,64 @@ function toggleBookmark(surahNum, ayahNum) {
   }
   saveJSON('bookmarks', bookmarks);
 
-  const btn = document.querySelector('#ayah-' + surahNum + '-' + ayahNum + ' .bookmark-btn');
+  const btn = document.querySelector('#ayah-' + surahNum + '-' + ayahNum + ' .ay-bookmark');
   if (btn) {
     btn.classList.toggle('active', nowBookmarked);
-    btn.textContent = nowBookmarked ? '\u2605' : '\u2606';
   }
+  showToast(nowBookmarked ? 'Bookmark added' : 'Bookmark removed');
+}
+
+// ---------- Share an ayah (phone share sheet, or copy to clipboard) ----------
+
+let toastTimer = null;
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toast.classList.add('hidden'); }, 1800);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise(function (resolve, reject) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(area);
+    if (ok) resolve(); else reject(new Error('copy failed'));
+  });
+}
+
+function shareAyah(surahNum, ayahNum) {
+  const meta = surahList.find(function (s) { return s.number === surahNum; });
+  const data = window['surah' + String(surahNum).padStart(3, '0')];
+  const ayah = data && data.ayahs.find(function (a) { return a.number === ayahNum; });
+  if (!meta || !ayah) return;
+
+  const lang = loadJSON('translationLanguage', 'romanUrdu');
+  const translation = (lang === 'english' ? ayah.english : ayah.romanUrdu) || '';
+  const lines = [ayah.arabic.replace(/\uFEFF/g, '').trim()];
+  if (translation.trim()) lines.push('', translation.trim());
+  lines.push('', '\u2014 ' + meta.nameEnglish + ' (' + surahNum + ':' + ayahNum + ')');
+  const text = lines.join('\n');
+
+  if (navigator.share) {
+    navigator.share({ text: text }).catch(function () {}); // closing the share sheet is not an error
+    return;
+  }
+  copyText(text).then(function () {
+    showToast('Ayah copied to clipboard');
+  }, function () {
+    showToast('Could not copy this ayah');
+  });
 }
 
 // ---------- Bookmarks screen ----------
@@ -381,6 +509,65 @@ function applyFontSizes() {
   document.getElementById('translation-size-value').textContent = translationSize + 'px';
   document.getElementById('arabic-size-slider').value = arabicSize;
   document.getElementById('translation-size-slider').value = translationSize;
+  updateReadingPanel();
+}
+
+// ---------- Reading screen settings panel ("Aa" button) ----------
+
+const AYAH_SPACING = {
+  compact: { pad: '14px', line: '2.1' },
+  comfortable: { pad: '22px', line: '2.4' },
+  relaxed: { pad: '32px', line: '2.8' }
+};
+
+function toggleReadingPanel() {
+  document.getElementById('reading-panel').classList.toggle('hidden');
+  updateReadingPanel();
+}
+
+// Tapping anywhere outside the panel closes it
+document.addEventListener('click', function (event) {
+  const panel = document.getElementById('reading-panel');
+  if (panel.classList.contains('hidden')) return;
+  if (panel.contains(event.target) || event.target.closest('#reading-settings-btn')) return;
+  panel.classList.add('hidden');
+});
+
+function adjustReadingSize(kind, delta) {
+  const key = kind === 'arabic' ? 'arabicFontSize' : 'translationFontSize';
+  const fallback = kind === 'arabic' ? 20 : 19;
+  const next = Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, loadJSON(key, fallback) + delta));
+  saveJSON(key, next);
+  applyFontSizes();
+}
+
+function setAyahSpacing(name) {
+  saveJSON('ayahSpacing', name);
+  applyAyahSpacing();
+}
+
+function applyAyahSpacing() {
+  const spacing = AYAH_SPACING[loadJSON('ayahSpacing', 'comfortable')] || AYAH_SPACING.comfortable;
+  document.documentElement.style.setProperty('--ayah-pad', spacing.pad);
+  document.documentElement.style.setProperty('--arabic-line-height', spacing.line);
+  updateReadingPanel();
+}
+
+function updateReadingPanel() {
+  const arabicLabel = document.getElementById('rd-arabic-size');
+  const translationLabel = document.getElementById('rd-translation-size');
+  if (arabicLabel) arabicLabel.textContent = loadJSON('arabicFontSize', 20) + 'px';
+  if (translationLabel) translationLabel.textContent = loadJSON('translationFontSize', 19) + 'px';
+
+  const spacingName = loadJSON('ayahSpacing', 'comfortable');
+  document.querySelectorAll('[data-spacing]').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-spacing') === spacingName);
+  });
+  const fontStyle = loadJSON('arabicFontStyle', 'nastaliq');
+  document.querySelectorAll('[data-fontstyle]').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-fontstyle') === fontStyle);
+  });
+}
 }
 
 function onArabicSizeChange(value) {
@@ -508,7 +695,11 @@ function openSingleAyah(surahNum, ayahNum, returnTo) {
   const displayMode = loadJSON('displayMode', 'both');
 
   document.getElementById('ayah-list').innerHTML =
-    buildReadingAyahCard(surahNum, ayah, bookmarks, lang, translitStyle, displayMode);
+    buildReadingAyahCard(surahNum, ayah, bookmarks, lang, translitStyle, displayMode) +
+    '<div class="rd-nav"><button class="rd-nav-btn next rd-nav-full" onclick="openSurah(' + surahNum + ', ' + ayahNum + ', quranReturnScreen)">' +
+      '<span class="rd-nav-dir">Read in context</span>' +
+      '<span class="rd-nav-name">Open full Surah ' + meta.nameEnglish + ' &rarr;</span>' +
+    '</button></div>';
 
   saveJSON('lastRead', { surah: surahNum, ayah: ayahNum });
   resetReadingScroll();
@@ -1401,6 +1592,8 @@ function applyArabicFontStyle() {
   document.getElementById('font-nastaliq').classList.toggle('active', style === 'nastaliq');
   document.getElementById('font-indopak').classList.toggle('active', style === 'indopak');
   document.getElementById('font-uthmani').classList.toggle('active', style === 'uthmani');
+  updateReadingPanel();
+}
 }
 
 // ---------- What's New (reads whats-new.txt) ----------
@@ -1607,6 +1800,7 @@ renderHadithOfDay();
 applyTheme();
 applyFontSizes();
 applyArabicFontStyle();
+applyAyahSpacing();
 applyTranslationLanguage();
 applyTransliterationStyle();
 applyDisplayMode();

@@ -78,7 +78,42 @@
           <h2 id="reading-title"></h2>
           <p id="reading-subtitle" class="subtitle"></p>
         </div>
+        <button id="reading-settings-btn" class="download-btn rd-aa-btn" onclick="toggleReadingPanel()" aria-label="Reading settings" title="Reading settings">Aa</button>
         <button id="download-surah-btn" class="download-btn" onclick="openDownloadModal('surah')" title="Download this surah">&#11015;</button>
+        <div id="reading-panel" class="rd-panel hidden">
+          <div class="rd-row">
+            <span class="rd-label">Arabic size</span>
+            <div class="rd-stepper">
+              <button class="rd-step-btn" onclick="adjustReadingSize('arabic', -2)" aria-label="Smaller Arabic text">A&minus;</button>
+              <span id="rd-arabic-size" class="rd-step-value"></span>
+              <button class="rd-step-btn" onclick="adjustReadingSize('arabic', 2)" aria-label="Larger Arabic text">A+</button>
+            </div>
+          </div>
+          <div class="rd-row">
+            <span class="rd-label">Translation size</span>
+            <div class="rd-stepper">
+              <button class="rd-step-btn" onclick="adjustReadingSize('translation', -1)" aria-label="Smaller translation text">A&minus;</button>
+              <span id="rd-translation-size" class="rd-step-value"></span>
+              <button class="rd-step-btn" onclick="adjustReadingSize('translation', 1)" aria-label="Larger translation text">A+</button>
+            </div>
+          </div>
+          <div class="rd-row">
+            <span class="rd-label">Spacing</span>
+            <div class="rd-choices">
+              <button class="rd-choice" data-spacing="compact" onclick="setAyahSpacing('compact')">Compact</button>
+              <button class="rd-choice" data-spacing="comfortable" onclick="setAyahSpacing('comfortable')">Normal</button>
+              <button class="rd-choice" data-spacing="relaxed" onclick="setAyahSpacing('relaxed')">Relaxed</button>
+            </div>
+          </div>
+          <div class="rd-row">
+            <span class="rd-label">Arabic style</span>
+            <div class="rd-choices">
+              <button class="rd-choice" data-fontstyle="nastaliq" onclick="setArabicFontStyle('nastaliq')">Nastaliq</button>
+              <button class="rd-choice" data-fontstyle="indopak" onclick="setArabicFontStyle('indopak')">Indo-Pak</button>
+              <button class="rd-choice" data-fontstyle="uthmani" onclick="setArabicFontStyle('uthmani')">Uthmani</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div id="ayah-list"></div>
     </div>
@@ -299,6 +334,9 @@
       <button class="modal-cancel" onclick="closeDownloadModal()">Cancel</button>
     </div>
   </div>
+
+  <!-- TOAST (small message) -->
+  <div id="toast" class="toast hidden"></div>
 
   <!-- WHAT'S NEW MODAL -->
   <div id="whats-new-modal" class="wn-overlay hidden" onclick="if(event.target===this) closeWhatsNew()">

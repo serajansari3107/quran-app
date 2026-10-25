@@ -10,6 +10,12 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.1 | 25-Oct-2026
+- Premium Quran reading screen with Surah header and Bismillah
+- Bookmark and Share buttons on every ayah
+- Reading settings (Aa): font size, spacing and Arabic style
+- Previous / Next navigation between surahs and juz
+
 ## v1.0 | 25-Oct-2026
 - Premium Home screen with Daily Ayah and Daily Hadith
 - Continue Reading card with progress
