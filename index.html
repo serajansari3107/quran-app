@@ -25,6 +25,9 @@
             <p class="home-greeting">Assalamu Alaikum</p>
             <h1>Al-Quran</h1>
           </div>
+          <button id="whats-new-btn" class="home-icon-btn" onclick="openWhatsNew()" aria-label="What's New">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+          </button>
         </div>
         <div class="home-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -294,6 +297,42 @@
         <button onclick="confirmDownload('transliteration')">Transliteration only</button>
       </div>
       <button class="modal-cancel" onclick="closeDownloadModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- WHAT'S NEW MODAL -->
+  <div id="whats-new-modal" class="wn-overlay hidden" onclick="if(event.target===this) closeWhatsNew()">
+    <div class="wn-box" role="dialog" aria-modal="true" aria-labelledby="wn-title">
+      <div class="wn-head">
+        <div class="wn-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+        </div>
+        <div>
+          <h3 id="wn-title" class="wn-title">What's New</h3>
+          <p id="wn-meta" class="wn-sub"></p>
+        </div>
+      </div>
+      <ul id="wn-list" class="wn-list"></ul>
+      <button class="wn-btn wn-btn-primary wn-btn-full" onclick="closeWhatsNew()">Got it</button>
+    </div>
+  </div>
+
+  <!-- UPDATE AVAILABLE POPUP -->
+  <div id="update-popup" class="wn-overlay wn-overlay-sheet hidden">
+    <div class="wn-box" role="dialog" aria-modal="true" aria-labelledby="upd-title">
+      <div class="wn-head">
+        <div class="wn-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v5h-5"/></svg>
+        </div>
+        <div>
+          <h3 id="upd-title" class="wn-title">Update available</h3>
+          <p id="update-version" class="wn-sub">A new version of Al-Quran is ready.</p>
+        </div>
+      </div>
+      <div class="wn-actions">
+        <button id="update-later-btn" class="wn-btn wn-btn-ghost" onclick="dismissUpdate()">Later</button>
+        <button id="update-now-btn" class="wn-btn wn-btn-primary" onclick="applyUpdate()">Update Now</button>
+      </div>
     </div>
   </div>
 

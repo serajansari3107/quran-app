@@ -1403,6 +1403,126 @@ function applyArabicFontStyle() {
   document.getElementById('font-uthmani').classList.toggle('active', style === 'uthmani');
 }
 
+// ---------- What's New (reads whats-new.txt) ----------
+// Format of whats-new.txt:  "## VERSION | YYYY-MM-DD" header, then "- change" lines.
+// Newest release goes at the TOP of the file; the app shows only that one.
+
+function parseWhatsNew(text) {
+  const releases = [];
+  let current = null;
+  text.split(/\r?\n/).forEach(function (raw) {
+    const line = raw.trim();
+    if (line.indexOf('## ') === 0) {
+      const parts = line.slice(3).split('|');
+      current = { version: parts[0].trim(), date: (parts[1] || '').trim(), changes: [] };
+      releases.push(current);
+    } else if (current && line.indexOf('- ') === 0) {
+      current.changes.push(line.slice(2).trim());
+    }
+  });
+  return releases;
+}
+
+function formatReleaseDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return value;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return Number(m[3]) + ' ' + months[Number(m[2]) - 1] + ' ' + m[1];
+}
+
+function loadLatestRelease() {
+  return fetch('whats-new.txt', { cache: 'no-store' }).then(function (response) {
+    if (!response.ok) throw new Error('whats-new.txt not found');
+    return response.text();
+  }).then(function (text) {
+    return parseWhatsNew(text)[0] || null;
+  });
+}
+
+function releaseLabel(release) {
+  return 'Version ' + release.version + (release.date ? ' \u00b7 ' + formatReleaseDate(release.date) : '');
+}
+
+function openWhatsNew() {
+  const list = document.getElementById('wn-list');
+  const meta = document.getElementById('wn-meta');
+  list.innerHTML = '';
+  meta.textContent = '';
+  const note = document.createElement('li');
+  note.className = 'wn-note';
+  note.textContent = 'Loading...';
+  list.appendChild(note);
+  document.getElementById('whats-new-modal').classList.remove('hidden');
+
+  loadLatestRelease().then(function (release) {
+    list.innerHTML = '';
+    if (!release) {
+      note.textContent = 'No release notes yet.';
+      list.appendChild(note);
+      return;
+    }
+    meta.textContent = releaseLabel(release);
+    release.changes.forEach(function (change) {
+      const li = document.createElement('li');
+      li.textContent = change;
+      list.appendChild(li);
+    });
+    saveJSON('whatsNewSeen', release.version);
+    document.getElementById('whats-new-btn').classList.remove('has-new');
+  }).catch(function () {
+    list.innerHTML = '';
+    note.textContent = 'Could not load What\u2019s New. Please check your connection.';
+    list.appendChild(note);
+  });
+}
+
+function closeWhatsNew() {
+  document.getElementById('whats-new-modal').classList.add('hidden');
+}
+
+// Small gold dot on the icon when there is a release the user has not opened yet
+function refreshWhatsNewDot() {
+  loadLatestRelease().then(function (release) {
+    if (release && loadJSON('whatsNewSeen', null) !== release.version) {
+      document.getElementById('whats-new-btn').classList.add('has-new');
+    }
+  }).catch(function () {});
+}
+
+// ---------- App update popup (new version is NEVER applied automatically) ----------
+
+let waitingWorker = null;
+let updateRequested = false;
+let updateDismissed = false;
+
+function showUpdatePopup(worker) {
+  waitingWorker = worker;
+  if (updateDismissed) return;
+  document.getElementById('update-popup').classList.remove('hidden');
+  loadLatestRelease().then(function (release) {
+    if (release) {
+      document.getElementById('update-version').textContent = releaseLabel(release) + ' is ready.';
+    }
+  }).catch(function () {});
+}
+
+function dismissUpdate() {
+  updateDismissed = true; // asks again only the next time the app is opened
+  document.getElementById('update-popup').classList.add('hidden');
+}
+
+function applyUpdate() {
+  const btn = document.getElementById('update-now-btn');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+  updateRequested = true;
+  if (waitingWorker) {
+    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+  }
+  // The page reloads on 'controllerchange' (see below). Safety net if that never fires:
+  setTimeout(function () { window.location.reload(); }, 4000);
+}
+
 // ---------- Startup ----------
 
 surahList.forEach(function (s) {
@@ -1422,10 +1542,40 @@ applyDisplayMode();
 applyHadithDisplayMode();
 applyHadithFontSizes();
 
+refreshWhatsNewDot();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').catch(function () {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      // An update was already downloaded earlier and is waiting for the user's choice
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        showUpdatePopup(reg.waiting);
+      }
+
+      // A new version gets downloaded while the app is open
+      reg.addEventListener('updatefound', function () {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function () {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdatePopup(newWorker);
+          }
+        });
+      });
+
+      // Look for a new version when the app is reopened/resumed and every 30 minutes
+      function checkForUpdate() { reg.update().catch(function () {}); }
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') checkForUpdate();
+      });
+      setInterval(checkForUpdate, 30 * 60 * 1000);
+    }).catch(function () {
       // offline caching just won't be available -- app still works online
     });
+  });
+
+  // Reload ONLY after the user pressed "Update Now" (never on first install)
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (updateRequested) window.location.reload();
   });
 }

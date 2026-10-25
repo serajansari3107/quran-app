@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v44";
+const CACHE_NAME = "quran-app-v45";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -6,6 +6,7 @@ const ASSETS_TO_CACHE = [
   "style.css",
   "app.js",
   "manifest.json",
+  "whats-new.txt",
   "adhan.min.js",
   "data/001-al-fatiha.js",
   "data/002-al-baqarah.js",
@@ -480,13 +481,45 @@ const ASSETS_TO_CACHE = [
   "fonts/ScheherazadeNew-Regular.ttf"
 ];
 
+// cache: "reload" = browser ki purani HTTP cache bypass karke fresh file laata hai,
+// taaki naye cache mein purani + nayi files mix na hon. Ek file fail ho to 1 baar retry.
+function cacheFresh(cache, url) {
+  function attempt() {
+    return fetch(new Request(url, { cache: "reload" })).then(function (response) {
+      if (!response.ok) throw new Error("Could not cache " + url);
+      return cache.put(url, response);
+    });
+  }
+  return attempt().catch(attempt);
+}
+
+// Ek saath sirf 8 files download hoti hain (480+ files parallel bhejne se install fail ho sakta tha)
+function cacheAllFresh(cache, urls) {
+  let next = 0;
+  function runner() {
+    if (next >= urls.length) return Promise.resolve();
+    return cacheFresh(cache, urls[next++]).then(runner);
+  }
+  const runners = [];
+  for (let i = 0; i < 8; i++) runners.push(runner());
+  return Promise.all(runners);
+}
+
 self.addEventListener("install", function (event) {
+  // NOTE: yahan skipWaiting() nahi hai -- naya version "waiting" mein rukta hai
+  // jab tak user app ke popup mein "Update Now" na dabaye.
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cacheAllFresh(cache, ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting();
+});
+
+// Page "Update Now" dabane par ye message bhejta hai
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", function (event) {
@@ -502,6 +535,25 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
+  if (event.request.method !== "GET") return;
+
+  // whats-new.txt: pehle internet se (taaki GitHub par edit karte hi naya text mile),
+  // offline ho to cache wala dikhao.
+  if (new URL(event.request.url).pathname.endsWith("/whats-new.txt")) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" }).then(function (response) {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
+        }
+        return response;
+      }).catch(function () {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(function (cached) {
       if (cached) return cached;

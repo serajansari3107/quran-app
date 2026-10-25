@@ -1,0 +1,17 @@
+# Al-Quran - What's New
+#
+# FORMAT (is file ko manually edit karo):
+#   - "#" se shuru hone wali lines ignore hoti hain (comments).
+#   - Har release ek header line se shuru hota hai:   ## VERSION | YYYY-MM-DD
+#   - Uske neeche har change "- " se shuru hoti hai (ek line = ek change).
+#   - NAYA release hamesha sabse UPAR add karo. App sirf sabse upar wala release dikhata hai.
+#   - Release ke beech mein blank line chhod sakte ho.
+
+## 1.1.0 | 2026-10-24
+- New premium Home screen with Daily Ayah and Daily Hadith
+- Continue Reading card with progress
+- Update popup: new versions are now offered with Update Now / Later
+- What's New: see the latest changes from the Home screen
+
+## 1.0.0 | 2026-09-01
+- First release: Quran with Roman Urdu translation, 6 Hadith books, Salah times
