@@ -1423,15 +1423,8 @@ function parseWhatsNew(text) {
   return releases;
 }
 
-function formatReleaseDate(value) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!m) return value;
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return Number(m[3]) + ' ' + months[Number(m[2]) - 1] + ' ' + m[1];
-}
-
-function loadLatestRelease() {
-  return fetch('whats-new.txt', { cache: 'no-store' }).then(function (response) {
+function readReleaseFrom(url, options) {
+  return fetch(url, options).then(function (response) {
     if (!response.ok) throw new Error('whats-new.txt not found');
     return response.text();
   }).then(function (text) {
@@ -1439,8 +1432,23 @@ function loadLatestRelease() {
   });
 }
 
+// The release that is INSTALLED in this app (whats-new.txt from the app's own cache)
+function loadInstalledRelease() {
+  return readReleaseFrom('whats-new.txt');
+}
+
+// The newest release on the internet (never cached). Fails when offline.
+function loadLatestRelease() {
+  return readReleaseFrom('whats-new.txt?latest=' + Date.now(), { cache: 'no-store' });
+}
+
 function releaseLabel(release) {
-  return 'Version ' + release.version + (release.date ? ' \u00b7 ' + formatReleaseDate(release.date) : '');
+  return release.version + (release.date ? ' \u00b7 ' + release.date : '');
+}
+
+// Changes whenever the version, date or any change line is edited
+function releaseSignature(release) {
+  return release.version + '|' + release.date + '|' + release.changes.join('\n');
 }
 
 function openWhatsNew() {
@@ -1454,7 +1462,7 @@ function openWhatsNew() {
   list.appendChild(note);
   document.getElementById('whats-new-modal').classList.remove('hidden');
 
-  loadLatestRelease().then(function (release) {
+  loadInstalledRelease().then(function (release) {
     list.innerHTML = '';
     if (!release) {
       note.textContent = 'No release notes yet.';
@@ -1467,7 +1475,7 @@ function openWhatsNew() {
       li.textContent = change;
       list.appendChild(li);
     });
-    saveJSON('whatsNewSeen', release.version);
+    saveJSON('whatsNewSeen', releaseSignature(release));
     document.getElementById('whats-new-btn').classList.remove('has-new');
   }).catch(function () {
     list.innerHTML = '';
@@ -1482,8 +1490,8 @@ function closeWhatsNew() {
 
 // Small gold dot on the icon when there is a release the user has not opened yet
 function refreshWhatsNewDot() {
-  loadLatestRelease().then(function (release) {
-    if (release && loadJSON('whatsNewSeen', null) !== release.version) {
+  loadInstalledRelease().then(function (release) {
+    if (release && loadJSON('whatsNewSeen', null) !== releaseSignature(release)) {
       document.getElementById('whats-new-btn').classList.add('has-new');
     }
   }).catch(function () {});
@@ -1495,15 +1503,45 @@ let waitingWorker = null;
 let updateRequested = false;
 let updateDismissed = false;
 
-function showUpdatePopup(worker) {
-  waitingWorker = worker;
-  if (updateDismissed) return;
-  document.getElementById('update-popup').classList.remove('hidden');
-  loadLatestRelease().then(function (release) {
-    if (release) {
-      document.getElementById('update-version').textContent = releaseLabel(release) + ' is ready.';
+// Compares the installed release (app cache) with the latest whats-new.txt on the internet.
+//  - different VERSION            -> "New Version Available"  + latest changes
+//  - same version, different text -> "New Features Available" + latest changes
+function checkForNewRelease() {
+  Promise.all([loadInstalledRelease(), loadLatestRelease()]).then(function (releases) {
+    const installed = releases[0];
+    const latest = releases[1];
+    if (!installed || !latest) return;
+    if (releaseSignature(installed) !== releaseSignature(latest)) {
+      showUpdatePopup(installed.version !== latest.version ? 'version' : 'features', latest);
+    } else if (waitingWorker) {
+      showUpdatePopup('update', latest); // app files changed but whats-new.txt was not edited
     }
   }).catch(function () {});
+}
+
+function showUpdatePopup(kind, release) {
+  if (updateDismissed || updateRequested) return;
+  const titles = {
+    version: 'New Version Available',
+    features: 'New Features Available',
+    update: 'Update Available'
+  };
+  document.getElementById('upd-title').textContent = titles[kind];
+  document.getElementById('update-version').textContent = kind === 'update'
+    ? 'A new version of Al-Quran is ready.'
+    : releaseLabel(release);
+
+  const list = document.getElementById('update-list');
+  list.innerHTML = '';
+  if (kind !== 'update') {
+    release.changes.forEach(function (change) {
+      const li = document.createElement('li');
+      li.textContent = change;
+      list.appendChild(li);
+    });
+  }
+  list.classList.toggle('hidden', !list.children.length);
+  document.getElementById('update-popup').classList.remove('hidden');
 }
 
 function dismissUpdate() {
@@ -1511,16 +1549,49 @@ function dismissUpdate() {
   document.getElementById('update-popup').classList.add('hidden');
 }
 
+function updateFailed() {
+  updateRequested = false;
+  const btn = document.getElementById('update-now-btn');
+  btn.disabled = false;
+  btn.textContent = 'Update Now';
+  document.getElementById('update-version').textContent = 'Update failed. Please check your internet and try again.';
+}
+
+// A new service worker (changed sw.js) is installed -> activate it; the page reloads on 'controllerchange'
+function activateWorker(worker) {
+  if (worker.state === 'installed') {
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    return;
+  }
+  worker.addEventListener('statechange', function () {
+    if (worker.state === 'installed') worker.postMessage({ type: 'SKIP_WAITING' });
+    if (worker.state === 'redundant') updateFailed();
+  });
+}
+
 function applyUpdate() {
+  if (updateRequested) return;
   const btn = document.getElementById('update-now-btn');
   btn.disabled = true;
   btn.textContent = 'Updating...';
   updateRequested = true;
-  if (waitingWorker) {
-    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+
+  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+    window.location.reload();
+    return;
   }
-  // The page reloads on 'controllerchange' (see below). Safety net if that never fires:
-  setTimeout(function () { window.location.reload(); }, 4000);
+
+  navigator.serviceWorker.getRegistration().then(function (reg) {
+    return reg.update().catch(function () {}).then(function () { return reg; });
+  }).then(function (reg) {
+    const pending = reg.waiting || reg.installing;
+    if (pending) {
+      activateWorker(pending);          // sw.js was changed too
+    } else {
+      // only whats-new.txt / app files changed: service worker re-downloads everything fresh
+      navigator.serviceWorker.controller.postMessage({ type: 'REFRESH_CACHE' });
+    }
+  }).catch(updateFailed);
 }
 
 // ---------- Startup ----------
@@ -1547,24 +1618,29 @@ refreshWhatsNewDot();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
-      // An update was already downloaded earlier and is waiting for the user's choice
+      // A changed sw.js was already downloaded earlier and is waiting
       if (reg.waiting && navigator.serviceWorker.controller) {
-        showUpdatePopup(reg.waiting);
+        waitingWorker = reg.waiting;
       }
 
-      // A new version gets downloaded while the app is open
+      // A changed sw.js gets downloaded while the app is open
       reg.addEventListener('updatefound', function () {
         const newWorker = reg.installing;
         if (!newWorker) return;
         newWorker.addEventListener('statechange', function () {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            showUpdatePopup(newWorker);
+            waitingWorker = newWorker;
+            checkForNewRelease();
           }
         });
       });
 
-      // Look for a new version when the app is reopened/resumed and every 30 minutes
-      function checkForUpdate() { reg.update().catch(function () {}); }
+      // Look for a new release when the app opens, is resumed, and every 30 minutes
+      function checkForUpdate() {
+        reg.update().catch(function () {});
+        checkForNewRelease();
+      }
+      checkForNewRelease();
       document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'visible') checkForUpdate();
       });
@@ -1577,5 +1653,12 @@ if ('serviceWorker' in navigator) {
   // Reload ONLY after the user pressed "Update Now" (never on first install)
   navigator.serviceWorker.addEventListener('controllerchange', function () {
     if (updateRequested) window.location.reload();
+  });
+
+  navigator.serviceWorker.addEventListener('message', function (event) {
+    const type = event.data && event.data.type;
+    if (!updateRequested) return;
+    if (type === 'REFRESH_DONE') window.location.reload();
+    if (type === 'REFRESH_FAILED') updateFailed();
   });
 }

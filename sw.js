@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v45";
+const CACHE_NAME = "quran-app-v46";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -515,12 +515,49 @@ self.addEventListener("install", function (event) {
   );
 });
 
-// Page "Update Now" dabane par ye message bhejta hai
+// Page "Update Now" dabane par ye messages bhejta hai
 self.addEventListener("message", function (event) {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+  const type = event.data && event.data.type;
+  if (type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+  if (type === "REFRESH_CACHE") {
+    event.waitUntil(
+      refreshCache().then(function () {
+        return tellPages("REFRESH_DONE");
+      }).catch(function () {
+        return tellPages("REFRESH_FAILED");
+      })
+    );
+  }
 });
+
+function tellPages(type) {
+  return self.clients.matchAll().then(function (clients) {
+    clients.forEach(function (client) { client.postMessage({ type: type }); });
+  });
+}
+
+// Latest files pehle alag (temp) cache mein download hoti hain. Sab sahi download ho jaye
+// tabhi live cache mein copy hoti hain -- beech mein net toot jaye to purani app safe rehti hai.
+function refreshCache() {
+  const TEMP_CACHE = CACHE_NAME + "-refresh";
+  function cleanup() { return caches.delete(TEMP_CACHE); }
+  return caches.delete(TEMP_CACHE).then(function () {
+    return caches.open(TEMP_CACHE);
+  }).then(function (temp) {
+    return cacheAllFresh(temp, ASSETS_TO_CACHE).then(function () {
+      return Promise.all([caches.open(CACHE_NAME), temp.keys()]);
+    }).then(function (res) {
+      const live = res[0];
+      return Promise.all(res[1].map(function (request) {
+        return temp.match(request).then(function (response) { return live.put(request, response); });
+      }));
+    });
+  }).then(cleanup, function (err) {
+    return cleanup().then(function () { throw err; });
+  });
+}
 
 self.addEventListener("activate", function (event) {
   event.waitUntil(
@@ -537,20 +574,12 @@ self.addEventListener("activate", function (event) {
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
 
-  // whats-new.txt: pehle internet se (taaki GitHub par edit karte hi naya text mile),
-  // offline ho to cache wala dikhao.
-  if (new URL(event.request.url).pathname.endsWith("/whats-new.txt")) {
-    event.respondWith(
-      fetch(event.request, { cache: "no-store" }).then(function (response) {
-        if (response && response.status === 200) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
-        }
-        return response;
-      }).catch(function () {
-        return caches.match(event.request);
-      })
-    );
+  // "whats-new.txt?latest=..." = app ye internet se latest release check karne ke liye mangta hai.
+  // Ise seedha internet se lao aur cache mein kabhi mat rakho.
+  // (Plain "whats-new.txt" normal cache se aati hai = jo release abhi installed hai.)
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.endsWith("/whats-new.txt") && requestUrl.search) {
+    event.respondWith(fetch(event.request, { cache: "no-store" }));
     return;
   }
 

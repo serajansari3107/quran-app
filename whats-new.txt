@@ -2,16 +2,16 @@
 #
 # FORMAT (is file ko manually edit karo):
 #   - "#" se shuru hone wali lines ignore hoti hain (comments).
-#   - Har release ek header line se shuru hota hai:   ## VERSION | YYYY-MM-DD
-#   - Uske neeche har change "- " se shuru hoti hai (ek line = ek change).
+#   - Release header:  ## VERSION | DD-Mon-YYYY     (example:  ## v1.0 | 25-Oct-2026)
+#   - Header ke neeche har change "- " se shuru hoti hai (ek line = ek change).
 #   - NAYA release hamesha sabse UPAR add karo. App sirf sabse upar wala release dikhata hai.
-#   - Release ke beech mein blank line chhod sakte ho.
+#
+# POPUP KAISE AATA HAI (is file ko push karte hi):
+#   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
+#   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## 1.1.0 | 2026-10-24
-- New premium Home screen with Daily Ayah and Daily Hadith
+## v1.0 | 25-Oct-2026
+- Premium Home screen with Daily Ayah and Daily Hadith
 - Continue Reading card with progress
-- Update popup: new versions are now offered with Update Now / Later
-- What's New: see the latest changes from the Home screen
-
-## 1.0.0 | 2026-09-01
-- First release: Quran with Roman Urdu translation, 6 Hadith books, Salah times
+- New update system: Update Now / Later popup
+- What's New button on the Home screen
