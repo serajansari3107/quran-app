@@ -10,6 +10,12 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.4 | 26-Oct-2026
+- Fixed: Hadith "Continue Reading" now follows your scroll position
+- Fixed: Download and display mode now work in chapter 0 (Muslim Introduction, Ibn Majah)
+- Fixed: Surah search finds names without - or ' (e.g. yasin, maidah)
+- Fixed: a hadith without English text now shows its Arabic
+
 ## v1.3 | 25-Oct-2026
 - Premium polish on every screen: Bookmarks, Settings, Salah and popups
 - Cleaner tabs, buttons, cards and empty states in one consistent style

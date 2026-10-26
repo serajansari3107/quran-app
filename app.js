@@ -15,7 +15,7 @@ let scrollTrackTicking = false;
 function findTopmostVisibleCard(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return null;
-  const cards = container.querySelectorAll('.ayah-card');
+  const cards = container.querySelectorAll('.ayah-card, .hadith-card');
   let closest = null;
   let closestDist = Infinity;
   cards.forEach(function (card) {
@@ -46,10 +46,15 @@ function onAppScroll() {
     }
 
     const hadithReadingVisible = !document.getElementById('hadith-reading-screen').classList.contains('hidden');
-    if (hadithReadingVisible && currentOpenHadithChapter) {
+    if (hadithReadingVisible && currentOpenHadithChapter !== null) {
       const card = findTopmostVisibleCard('hadith-list');
-      if (card && card.dataset.hadithNumber) {
-        saveJSON('hadithLastRead', { book: currentHadithBook, number: Number(card.dataset.hadithNumber) });
+      if (card) {
+        const parts = card.id.split('-'); // "hadith-<book>-<chapterId>-<index>"
+        const chapterId = Number(parts[parts.length - 2]);
+        const index = Number(parts[parts.length - 1]);
+        if (!isNaN(chapterId) && !isNaN(index)) {
+          saveJSON('hadithLastRead', { book: currentHadithBook, chapterId: chapterId, index: index });
+        }
       }
     }
   });
@@ -95,9 +100,12 @@ function renderSurahList(list) {
 }
 
 function filterSurahList() {
-  const query = document.getElementById('search-box').value.toLowerCase();
+  const raw = document.getElementById('search-box').value.toLowerCase().trim();
+  // ignore - ' and spaces, so "yasin", "ya sin" and "maidah" also find Ya-Sin / Al-Ma'idah
+  const clean = function (t) { return String(t).toLowerCase().replace(/[^a-z0-9]/g, ''); };
+  const query = clean(raw);
   const filtered = surahList.filter(function (s) {
-    return s.nameEnglish.toLowerCase().includes(query) || String(s.number).includes(query);
+    return !query || clean(s.nameEnglish).includes(query) || String(s.number).includes(raw);
   });
   renderSurahList(filtered);
 }
@@ -893,7 +901,7 @@ function buildHadithChapterSectionHtml(chapterId, info) {
 }
 
 function downloadCurrentHadithChapter() {
-  if (!currentOpenHadithChapter) return;
+  if (currentOpenHadithChapter === null) return;
   const info = HADITH_BOOKS[currentHadithBook];
   const meta = info.list().find(function (c) { return c.chapterId === currentOpenHadithChapter; });
   if (!meta) return;
@@ -1102,7 +1110,9 @@ function hadithMatchesNumber(hadith, num, suffix) {
 
 function buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadithDisplayMode, chapterId, index) {
   const displayNum = hadithDisplayNumber(hadith);
-  const arabicBlock = (hadithDisplayMode === 'english' || !hadith.arabic) ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
+  const hasEnglish = !!(hadith.english && String(hadith.english).trim());
+  // if a hadith has no English text in the data, show its Arabic instead of an empty card
+  const arabicBlock = (!hadith.arabic || (hadithDisplayMode === 'english' && hasEnglish)) ? '' : '<p class="hadith-arabic-text">' + hadith.arabic + '</p>';
   const isBookmarked = hadithBookmarks.some(function (b) { return b.book === bookKey && b.chapterId === chapterId && b.index === index; });
   const bookmarkClass = isBookmarked ? 'ay-btn ay-bookmark active' : 'ay-btn ay-bookmark';
   const domId = 'hadith-' + bookKey + '-' + chapterId + '-' + index;
@@ -1116,7 +1126,7 @@ function buildHadithCard(hadith, chapter, info, bookKey, hadithBookmarks, hadith
       '</div>' +
       (hadith.narrator ? '<div class="hd-narrator"><span class="hd-narrator-icon">' + HD_ICON_USER + '</span><p class="hadith-narrator">' + hadith.narrator + '</p></div>' : '') +
       arabicBlock +
-      '<p class="hadith-english-text">' + hadith.english + '</p>' +
+      (hasEnglish ? '<p class="hadith-english-text">' + hadith.english + '</p>' : '<p class="hadith-english-text" style="font-style:italic;opacity:0.7">English translation is not available for this hadith.</p>') +
       (hadith.grade ? '<p class="hadith-grade">Grade: ' + hadith.grade + '</p>' : '') +
       '<div class="hd-source">' + HD_ICON_BOOK + '<span>' + info.label + ' \u00b7 Hadith ' + displayNum + chapterName + '</span></div>' +
     '</div>'
@@ -1255,7 +1265,7 @@ function rerenderCurrentHadithView() {
     if (matches.length) renderHadithResults(matches, info);
   } else if (currentHadithLocation) {
     openHadithAtLocation(currentHadithLocation.book, currentHadithLocation.chapterId, currentHadithLocation.index);
-  } else if (currentOpenHadithChapter) {
+  } else if (currentOpenHadithChapter !== null) {
     openHadithChapter(currentOpenHadithChapter);
   }
 }
