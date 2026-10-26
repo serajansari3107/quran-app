@@ -1,8 +1,14 @@
-Both fonts in this folder are licensed under the SIL Open Font License 1.1
-(free to use, bundle, and redistribute).
+NotoNastaliqUrdu.ttf and ScheherazadeNew (Regular, Bold) in this folder are
+licensed under the SIL Open Font License 1.1 (free to use, bundle, and redistribute).
 
 - NotoNastaliqUrdu.ttf -- Copyright Google Inc., part of the Noto Fonts project.
 - ScheherazadeNew-Regular.ttf, ScheherazadeNew-Bold.ttf -- Copyright SIL Global
   (https://www.sil.org/), part of the Scheherazade New project.
 
 Full license text: https://openfontlicense.org
+
+- IndopakNastaleeq.ttf -- "Indopak Nastaleeq" Quran font (Hanafi, with waqf lazmi,
+  v4.2.2), taken from the Quranic Universal Library (QUL) by Tarteel:
+  https://qul.tarteel.ai
+  This font is NOT covered by the SIL OFL statement above. Its own license / terms
+  are the ones published on its page at qul.tarteel.ai.

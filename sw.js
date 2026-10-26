@@ -481,7 +481,8 @@ const ASSETS_TO_CACHE = [
   "icons/icon-maskable-512.png",
   "fonts/NotoNastaliqUrdu.ttf",
   "fonts/ScheherazadeNew-Bold.ttf",
-  "fonts/ScheherazadeNew-Regular.ttf"
+  "fonts/ScheherazadeNew-Regular.ttf",
+  "fonts/IndopakNastaleeq.ttf"
 ];
 
 // cache: "reload" = browser ki purani HTTP cache bypass karke fresh file laata hai,

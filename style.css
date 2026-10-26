@@ -23,17 +23,12 @@
   font-display: swap;
 }
 
-/* Indopak Nastaleeq is the ONE exception: it's only hosted on Tarteel's own
-   servers (static-cdn.tarteel.ai) and isn't mirrored anywhere I could
-   download it from to bundle locally. It still needs internet the first
-   time you select it in Settings; after that first successful load it's
-   cached offline like everything else. If you'd rather have this one fully
-   offline too, download the file yourself from qul.tarteel.ai, save it as
-   fonts/IndopakNastaleeq.ttf, and change the url() below to that local path. */
+/* Indopak Nastaleeq is stored locally (fonts/IndopakNastaleeq.ttf), so it
+   works fully offline. Source: qul.tarteel.ai */
 
 @font-face {
   font-family: "Indopak Nastaleeq";
-  src: url("https://static-cdn.tarteel.ai/qul/fonts/nastaleeq/Hanafi/normal-v4.2.2/with-waqf-lazmi/font.ttf") format("truetype");
+  src: url("fonts/IndopakNastaleeq.ttf") format("truetype");
   font-display: swap;
 }
 
