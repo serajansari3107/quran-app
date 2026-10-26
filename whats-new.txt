@@ -10,6 +10,11 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.5 | 26-Oct-2026
+- New premium Salah screen: next prayer, live countdown and Now / Next highlight
+- Home: Daily Ayah and Daily Hadith are now compact cards, tap to read
+- Quran card on Home now opens a proper Quran section (Surahs and Juz)
+
 ## v1.4 | 26-Oct-2026
 - Fixed: Hadith "Continue Reading" now follows your scroll position
 - Fixed: Download and display mode now work in chapter 0 (Muslim Introduction, Ibn Majah)

@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="hadith.css">
 <link rel="stylesheet" href="polish.css">
+<link rel="stylesheet" href="salah-home.css">
 </head>
 <body>
 
@@ -31,9 +32,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
           </button>
         </div>
-        <div class="home-search">
+        <div class="home-search home-search-launch" role="button" tabindex="0" onclick="openQuranSearch()" onkeydown="if(event.key==='Enter') openQuranSearch()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-          <input id="search-box" type="text" placeholder="Search surah, or type 2:255 to jump to an ayah" oninput="filterSurahList()" onkeydown="if(event.key==='Enter') tryJumpFromSearch()">
+          <span class="home-search-text">Search surah, or type 2:255 to jump to an ayah</span>
         </div>
       </div>
 
@@ -46,7 +47,7 @@
         </div>
 
         <div class="home-nav-cards">
-          <div class="home-nav-card" onclick="setListMode('surah'); document.getElementById('home-browse').scrollIntoView({ behavior: 'smooth' })">
+          <div class="home-nav-card" onclick="showScreen('quran-screen')">
             <div class="home-nav-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-1.8-1.3-4-2-7-2v14c3 0 5.2.7 7 2 1.8-1.3 4-2 7-2V4c-3 0-5.2.7-7 2z"/><path d="M12 6v14"/></svg>
             </div>
@@ -62,7 +63,25 @@
           </div>
         </div>
 
-        <p id="home-browse" class="home-section-title">Browse Quran</p>
+      </div>
+    </div>
+
+    <!-- QURAN SECTION (Surah / Juz list) -->
+    <div id="quran-screen" class="screen hidden">
+      <div class="top-bar hd-home-bar">
+        <div class="hd-home-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg></div>
+        <div class="hd-home-title">
+          <h1>Quran</h1>
+          <p class="subtitle">114 Surahs &middot; 30 Juz</p>
+        </div>
+      </div>
+      <div class="qr-search-wrap">
+        <div class="home-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="search-box" type="text" placeholder="Search surah, or type 2:255 to jump to an ayah" oninput="filterSurahList()" onkeydown="if(event.key==='Enter') tryJumpFromSearch()">
+        </div>
+      </div>
+      <div class="qr-body">
         <div class="list-toggle">
           <button id="toggle-surah" class="toggle-btn active" onclick="setListMode('surah')">Surahs</button>
           <button id="toggle-juz" class="toggle-btn" onclick="setListMode('juz')">Juz</button>
@@ -127,6 +146,8 @@
         <p class="subtitle" id="salah-date"></p>
       </div>
       <div class="salah-body">
+        <div id="salah-next-card"></div>
+
         <div id="salah-location-card" class="location-card">
           <p id="salah-location-text" class="location-text">Location not set yet</p>
           <input id="city-search-box" type="text" placeholder="Search an Indian city (e.g. Faridabad)" oninput="filterCityOptions()" onfocus="filterCityOptions()">

@@ -88,7 +88,7 @@ function renderSurahList(list) {
   container.innerHTML = list.map(function (s) {
     const hasTranslation = s.hasTranslation ? '' : 'no-translation';
     return (
-      '<div class="surah-row ' + hasTranslation + '" onclick="openSurah(' + s.number + ')">' +
+      '<div class="surah-row ' + hasTranslation + '" onclick="openSurah(' + s.number + ', undefined, \'quran-screen\')">' +
         '<div class="surah-number">' + s.number + '</div>' +
         '<div class="surah-info">' +
           '<p class="name">' + s.nameEnglish + '</p>' +
@@ -590,13 +590,21 @@ function onTranslationSizeChange(value) {
 // ---------- Screen + bottom nav switching ----------
 
 function showScreen(id) {
-  ['home-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen', 'hadith-home-screen', 'hadith-book-screen', 'hadith-reading-screen'].forEach(function (s) {
+  ['home-screen', 'quran-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen', 'hadith-home-screen', 'hadith-book-screen', 'hadith-reading-screen'].forEach(function (s) {
     document.getElementById(s).classList.toggle('hidden', s !== id);
   });
   document.getElementById('bottom-nav').classList.toggle('hidden', id === 'reading-screen' || id === 'hadith-book-screen' || id === 'hadith-reading-screen');
+  // the Quran section belongs to the Home tab
+  const navTarget = id === 'quran-screen' ? 'home-screen' : id;
   document.querySelectorAll('.nav-item').forEach(function (el) {
-    el.classList.toggle('active', el.dataset.target === id);
+    el.classList.toggle('active', el.dataset.target === navTarget);
   });
+  if (id !== 'salah-screen') stopSalahTicker();
+  if (id === 'quran-screen') {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
   if (id === 'home-screen') {
     renderContinueReading();
     renderAyahOfDay();
@@ -643,7 +651,7 @@ function renderJuzList() {
     const endMeta = surahList.find(function (s) { return s.number === j.endSurah; });
     const rangeText = startMeta.nameEnglish + ' ' + j.startAyah + ' \u2013 ' + endMeta.nameEnglish + ' ' + j.endAyah;
     return (
-      '<div class="surah-row" onclick="openJuz(' + j.number + ')">' +
+      '<div class="surah-row" onclick="openJuz(' + j.number + ', \'quran-screen\')">' +
         '<div class="surah-number">' + j.number + '</div>' +
         '<div class="surah-info">' +
           '<p class="name">Juz ' + j.number + '</p>' +
@@ -675,7 +683,14 @@ function tryJumpFromSearch() {
   }
   box.value = '';
   filterSurahList();
-  openSingleAyah(surahNum, ayahNum);
+  openSingleAyah(surahNum, ayahNum, 'quran-screen');
+}
+
+// Home search bar: opens the Quran section with the search box ready to type
+function openQuranSearch() {
+  showScreen('quran-screen');
+  const box = document.getElementById('search-box');
+  if (box) box.focus();
 }
 
 let currentSingleAyahView = null; // { surah, ayah } when showing one isolated ayah
@@ -750,19 +765,16 @@ function renderAyahOfDay() {
     box.classList.add('hidden');
     return;
   }
-  const lang = loadJSON('translationLanguage', 'romanUrdu');
-  const translationText = (lang === 'english' ? ayah.english : ayah.romanUrdu) || '';
-
   box.classList.remove('hidden');
   box.innerHTML =
-    '<div class="hm-card" onclick="openSingleAyah(' + chosenSurah + ', ' + chosenAyah + ')">' +
-      '<p class="hm-card-label">' +
-        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>' +
-        'Daily Ayah' +
-      '</p>' +
-      '<p class="hm-arabic">' + ayah.arabic + '</p>' +
-      (translationText.trim() ? '<p class="hm-text">' + translationText + '</p>' : '') +
-      '<p class="hm-ref">' + meta.nameEnglish + ' \u00b7 Ayah ' + chosenAyah + '</p>' +
+    '<div class="hm-card hm-card-compact" role="button" tabindex="0" onclick="openSingleAyah(' + chosenSurah + ', ' + chosenAyah + ')">' +
+      '<div class="hm-compact-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>' +
+      '<div class="hm-compact-text">' +
+        '<p class="hm-card-label">Daily Ayah</p>' +
+        '<p class="hm-compact-title">' + meta.nameEnglish + ' \u00b7 Ayah ' + chosenAyah + '</p>' +
+        '<p class="hm-compact-sub">Tap to read</p>' +
+      '</div>' +
+      '<span class="hm-compact-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>' +
     '</div>';
 }
 
@@ -1402,16 +1414,17 @@ function renderHadithOfDay() {
       '<p class="continue-title">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
     '</div>';
 
-  // Same hadith, shown as a premium card on the Home screen
+  // Same hadith, shown as a small tappable card on the Home screen (content opens on tap)
   homeBox.classList.remove('hidden');
   homeBox.innerHTML =
-    '<div class="hm-card hm-card-hadith" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ', \'home-screen\')">' +
-      '<p class="hm-card-label">' +
-        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>' +
-        'Daily Hadith' +
-      '</p>' +
-      '<p class="hm-text">' + (picked.hadith.english || '') + '</p>' +
-      '<p class="hm-ref">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
+    '<div class="hm-card hm-card-hadith hm-card-compact" role="button" tabindex="0" onclick="openHadithAtLocation(\'' + book + '\', ' + picked.chapterId + ', ' + picked.index + ', \'home-screen\')">' +
+      '<div class="hm-compact-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>' +
+      '<div class="hm-compact-text">' +
+        '<p class="hm-card-label">Daily Hadith</p>' +
+        '<p class="hm-compact-title">' + info.label + ' \u00b7 Hadith ' + hadithDisplayNumber(picked.hadith) + '</p>' +
+        '<p class="hm-compact-sub">Tap to read</p>' +
+      '</div>' +
+      '<span class="hm-compact-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>' +
     '</div>';
 }
 
@@ -1504,6 +1517,75 @@ function getCalculationParams() {
   return params;
 }
 
+const SALAH_ICONS = {
+  fajr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 6v3M4.9 10l2 2M19.1 10l-2 2"/></svg>',
+  sunrise: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 4v5M9.5 6.5 12 4l2.5 2.5"/></svg>',
+  dhuhr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>',
+  asr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="11" r="3.5"/><path d="M12 3.5v2M4.5 11h2M17.5 11h2M6.7 5.7l1.4 1.4M17.3 5.7l-1.4 1.4"/><path d="M4 19h16"/></svg>',
+  maghrib: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18h18"/><path d="M7 18a5 5 0 0 1 10 0"/><path d="M12 5v4M9.5 7.5 12 10l2.5-2.5"/></svg>',
+  isha: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>'
+};
+
+let salahTicker = null;
+let salahNextInfo = null; // { time, prevTime } of the prayer we are counting down to
+
+function formatCountdown(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+// Which prayer is running now and which one comes next (same times as the list below)
+function getSalahState(times, tomorrowTimes, now) {
+  const order = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  let current = null;
+  order.forEach(function (k) { if (now >= times[k]) current = k; });
+  if (current === 'fajr' && now >= times.sunrise) current = null; // Fajr time is over after sunrise
+
+  let next = null;
+  let nextTime = null;
+  let tomorrow = false;
+  for (let i = 0; i < order.length; i++) {
+    if (times[order[i]] > now) { next = order[i]; nextTime = times[next]; break; }
+  }
+  if (!next) { next = 'fajr'; nextTime = tomorrowTimes.fajr; tomorrow = true; }
+
+  let prevTime = null;
+  ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(function (k) { if (now >= times[k]) prevTime = times[k]; });
+
+  const phase = current ? 'current' : (now >= times.sunrise ? 'sunrise' : 'before');
+  return { current: current, next: next, nextTime: nextTime, tomorrow: tomorrow, prevTime: prevTime, phase: phase };
+}
+
+function tickSalah() {
+  if (!salahNextInfo) return;
+  const now = new Date();
+  const ms = salahNextInfo.time - now;
+  if (ms <= 0) { renderSalahScreen(); return; } // a prayer time arrived: refresh Now / Next
+  const countEl = document.getElementById('salah-countdown');
+  if (countEl) countEl.textContent = formatCountdown(ms);
+  const bar = document.getElementById('salah-progress');
+  if (bar && salahNextInfo.prevTime) {
+    const span = salahNextInfo.time - salahNextInfo.prevTime;
+    const done = Math.min(100, Math.max(0, ((now - salahNextInfo.prevTime) / span) * 100));
+    bar.style.width = done.toFixed(1) + '%';
+  }
+}
+
+function startSalahTicker() {
+  stopSalahTicker();
+  salahTicker = setInterval(tickSalah, 1000);
+}
+
+function stopSalahTicker() {
+  if (salahTicker) {
+    clearInterval(salahTicker);
+    salahTicker = null;
+  }
+}
+
 function renderSalahScreen() {
   const dateEl = document.getElementById('salah-date');
   const today = new Date();
@@ -1531,17 +1613,62 @@ function renderSalahScreen() {
   const coordinates = new adhan.Coordinates(loc.lat, loc.lng);
   const params = getCalculationParams();
   const prayerTimes = new adhan.PrayerTimes(coordinates, today, params);
+  const tomorrowDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  const tomorrowTimes = new adhan.PrayerTimes(coordinates, tomorrowDate, params);
+  const state = getSalahState(prayerTimes, tomorrowTimes, today);
 
+  const fmt = function (t) { return t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+  const labelOf = function (key) { return PRAYER_LABELS.find(function (p) { return p.key === key; }).label; };
+
+  // ----- next prayer card with live countdown -----
+  const nowText = state.phase === 'current'
+    ? 'Now \u00b7 ' + labelOf(state.current)
+    : (state.phase === 'sunrise' ? 'Now \u00b7 After sunrise' : 'Now \u00b7 Before Fajr');
+  document.getElementById('salah-next-card').innerHTML =
+    '<div class="sn-card">' +
+      '<div class="sn-top"><span class="sn-badge">Next prayer</span><span class="sn-loc" id="sn-loc"></span></div>' +
+      '<p class="sn-name" id="sn-name"></p>' +
+      '<p class="sn-at" id="sn-at"></p>' +
+      '<p class="sn-count" id="salah-countdown">' + formatCountdown(state.nextTime - today) + '</p>' +
+      '<p class="sn-sub">remaining</p>' +
+      '<div class="hm-progress"><span id="salah-progress" style="width:0%"></span></div>' +
+      '<span class="sn-now" id="sn-now"></span>' +
+    '</div>';
+  document.getElementById('sn-loc').textContent = nameLine;
+  document.getElementById('sn-name').textContent = labelOf(state.next);
+  document.getElementById('sn-at').textContent = 'at ' + fmt(state.nextTime) + (state.tomorrow ? ' tomorrow' : '');
+  document.getElementById('sn-now').textContent = nowText;
+  if (!state.prevTime) document.getElementById('salah-progress').parentElement.style.visibility = 'hidden';
+
+  // ----- prayer rows (times unchanged), Now / Next highlighted -----
   timesList.innerHTML = PRAYER_LABELS.map(function (p) {
     const time = prayerTimes[p.key];
-    const timeStr = time.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    const timeStr = fmt(time);
+    let cls = 'prayer-row';
+    let tag = '';
+    if (p.key === state.current) {
+      cls += ' is-current';
+      tag = 'Now';
+    } else if (p.key === state.next) {
+      cls += ' is-next';
+      tag = state.tomorrow ? 'Tomorrow' : 'Next';
+    } else if (time < today) {
+      cls += ' is-past';
+    }
+    if (p.key === 'sunrise') cls += ' is-sunrise';
     return (
-      '<div class="prayer-row">' +
+      '<div class="' + cls + '">' +
+        '<span class="prayer-icon">' + SALAH_ICONS[p.key] + '</span>' +
         '<span class="prayer-name">' + p.label + '</span>' +
+        (tag ? '<span class="prayer-tag">' + tag + '</span>' : '') +
         '<span class="prayer-time">' + timeStr + '</span>' +
       '</div>'
     );
   }).join('');
+
+  salahNextInfo = { time: state.nextTime, prevTime: state.prevTime };
+  tickSalah();
+  startSalahTicker();
 }
 
 function setAsrMadhab(value) {
