@@ -732,12 +732,12 @@ function onTranslationSizeChange(value) {
 // ---------- Screen + bottom nav switching ----------
 
 function showScreen(id) {
-  ['home-screen', 'quran-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen', 'hadith-home-screen', 'hadith-book-screen', 'hadith-reading-screen'].forEach(function (s) {
+  ['home-screen', 'quran-screen', 'reading-screen', 'bookmarks-screen', 'settings-screen', 'salah-screen', 'hadith-home-screen', 'hadith-book-screen', 'hadith-reading-screen', 'story-library-screen', 'story-screen'].forEach(function (s) {
     document.getElementById(s).classList.toggle('hidden', s !== id);
   });
   document.getElementById('bottom-nav').classList.toggle('hidden', id === 'reading-screen' || id === 'hadith-book-screen' || id === 'hadith-reading-screen');
   // the Quran section belongs to the Home tab
-  const navTarget = id === 'quran-screen' ? 'home-screen' : id;
+  const navTarget = (id === 'quran-screen' || id === 'story-library-screen' || id === 'story-screen') ? 'home-screen' : id;
   document.querySelectorAll('.nav-item').forEach(function (el) {
     el.classList.toggle('active', el.dataset.target === navTarget);
   });

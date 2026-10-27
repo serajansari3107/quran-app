@@ -10,6 +10,11 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.6 | 27-Oct-2026
+- New Quran Story Mode card on Home
+- Story Library: 114 Surah cards (Al-Fatiha available, baaki Coming Soon)
+- Al-Fatiha ka story screen ready, Story Coming Soon
+
 ## v1.5 | 26-Oct-2026
 - New premium Salah screen: next prayer, live countdown and Now / Next highlight
 - Home: Daily Ayah and Daily Hadith are now compact cards, tap to read

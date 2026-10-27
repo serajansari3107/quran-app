@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="hadith.css">
 <link rel="stylesheet" href="polish.css">
 <link rel="stylesheet" href="salah-home.css">
+<link rel="stylesheet" href="story-mode.css">
 </head>
 <body>
 
@@ -60,6 +61,36 @@
             </div>
             <p class="home-nav-title">Hadith</p>
             <p class="home-nav-sub">6 Books &middot; Bukhari, Muslim +4</p>
+          </div>
+          <div class="sm-home-card" role="button" tabindex="0" onclick="openStoryLibrary()" onkeydown="if(event.key==='Enter') openStoryLibrary()">
+            <div class="sm-home-text">
+              <span class="sm-home-badge">NEW</span>
+              <p class="sm-home-title">Quran Story Mode</p>
+              <p class="sm-home-sub">Har Surah ka paighaam, aasaan Hinglish mein.</p>
+            </div>
+            <div class="sm-home-art">
+              <svg viewBox="0 0 132 132" aria-hidden="true">
+                <defs>
+                  <radialGradient id="smGlow" cx="0.5" cy="0.4" r="0.6">
+                    <stop offset="0" stop-color="#3B82F6" stop-opacity="0.45"/>
+                    <stop offset="1" stop-color="#3B82F6" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="76" cy="54" r="56" fill="url(#smGlow)"/>
+                <path d="M100 18 A22 22 0 1 0 108 58 A17 17 0 1 1 100 18 Z" fill="#D6B56D"/>
+                <path d="M62 24 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 z" fill="#D6B56D" opacity="0.9"/>
+                <path d="M122 70 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 z" fill="#D6B56D" opacity="0.8"/>
+                <path d="M34 46 l1.2 3.4 3.4 1.2 -3.4 1.2 -1.2 3.4 -1.2 -3.4 -3.4 -1.2 3.4 -1.2 z" fill="#3B82F6"/>
+                <path d="M44 132 V100 Q44 76 66 76 Q88 76 88 100 V132 Z" fill="#0c2a55" stroke="#D6B56D" stroke-width="1.5"/>
+                <path d="M66 76 V66" stroke="#D6B56D" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="66" cy="63" r="2.5" fill="#D6B56D"/>
+                <rect x="24" y="88" width="10" height="44" fill="#0c2a55" stroke="#D6B56D" stroke-width="1.5"/>
+                <path d="M22 88 L29 72 L36 88 Z" fill="#0c2a55" stroke="#D6B56D" stroke-width="1.5" stroke-linejoin="round"/>
+                <rect x="98" y="88" width="10" height="44" fill="#0c2a55" stroke="#D6B56D" stroke-width="1.5"/>
+                <path d="M96 88 L103 72 L110 88 Z" fill="#0c2a55" stroke="#D6B56D" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M59 132 V116 Q66 107 73 116 V132 Z" fill="#D6B56D" opacity="0.85"/>
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -293,6 +324,43 @@
         <button id="download-hadith-chapter-btn" class="download-btn hidden" onclick="downloadCurrentHadithChapter()" title="Download this chapter" aria-label="Download this chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
       </div>
       <div id="hadith-list"></div>
+    </div>
+
+    <!-- QURAN STORY MODE: LIBRARY SCREEN (114 Surah cards) -->
+    <div id="story-library-screen" class="screen hidden">
+      <div class="top-bar sm-bar">
+        <button class="back-icon-btn" onclick="showScreen('home-screen')" aria-label="Back">&#8592;</button>
+        <div class="sm-bar-title">
+          <h1>Quran Story Mode</h1>
+          <p class="subtitle">Har Surah ka paighaam, aasaan Hinglish mein.</p>
+        </div>
+      </div>
+      <div class="sm-lib-body">
+        <p id="story-lib-note" class="sm-lib-note"></p>
+        <div id="story-grid" class="sm-grid"></div>
+      </div>
+    </div>
+
+    <!-- QURAN STORY MODE: STORY SCREEN (content Step 1B mein) -->
+    <div id="story-screen" class="screen hidden">
+      <div class="top-bar sm-bar">
+        <button class="back-icon-btn" onclick="showScreen('story-library-screen')" aria-label="Back to Story Library">&#8592;</button>
+        <div class="sm-bar-title">
+          <h1 id="story-title"></h1>
+          <p id="story-subtitle" class="subtitle"></p>
+        </div>
+      </div>
+      <div class="sm-story-body">
+        <div class="sm-hero">
+          <div id="story-hero-num" class="sm-hero-num"></div>
+          <h2 id="story-hero-name" class="sm-hero-name"></h2>
+          <p id="story-hero-meaning" class="sm-hero-meaning"></p>
+        </div>
+        <div class="sm-placeholder">
+          <h3>Story jald aa rahi hai</h3>
+          <p>Is Surah ki story agle step mein add hogi.</p>
+        </div>
+      </div>
     </div>
 
     <!-- BOOKMARKS SCREEN -->
@@ -597,6 +665,7 @@
   <!-- Load the app logic last -->
   <script src="adhan.min.js"></script>
   <script src="app.js"></script>
+  <script src="story-mode.js"></script>
 
 </body>
 </html>
