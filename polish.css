@@ -467,3 +467,140 @@ input:focus-visible,
     transition-duration: 0.01ms !important;
   }
 }
+/* ---------- "Go to" surah + ayah wheel picker inside the Aa panel ---------- */
+
+.rd-jump {
+  padding: 10px 0 12px;
+}
+
+.rd-jump + .rd-row {
+  border-top: 1px solid var(--border);
+}
+
+.rd-jump .rd-label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.rd-jump-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rd-wheels {
+  position: relative;
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* the highlighted "selected" row sits in the middle of the wheels */
+.rd-wheels::before {
+  content: "";
+  position: absolute;
+  top: 54px;
+  left: 0;
+  right: 0;
+  height: 36px;
+  border: 1px solid var(--teal);
+  border-radius: 10px;
+  background: var(--teal-soft);
+  pointer-events: none;
+}
+
+.rd-wheel {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  height: 144px;
+  padding: 54px 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 28%, #000 72%, transparent 100%);
+}
+
+.rd-wheel::-webkit-scrollbar {
+  display: none;
+}
+
+.rd-wheel:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+.rd-wheel-surah {
+  flex: 1.7;
+  min-width: 0;
+}
+
+.rd-wheel-ayah {
+  flex: 0.8;
+  min-width: 64px;
+}
+
+.rd-wheel-item {
+  height: 36px;
+  padding: 0 10px;
+  overflow: hidden;
+  scroll-snap-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 36px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.rd-wheel-ayah .rd-wheel-item {
+  text-align: center;
+}
+
+.rd-wheel-item.is-selected {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rd-wheel-n {
+  display: inline-block;
+  min-width: 26px;
+  margin-right: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.rd-go-btn {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--teal);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.rd-go-btn:active {
+  transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
