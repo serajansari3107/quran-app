@@ -17,6 +17,7 @@
 - Indo-Pak Arabic style now works fully offline (font is stored in the app)
 - Faster app opening: Hadith data now loads only when needed
 - New "Go to" picker in the Aa panel: choose surah and ayah, then tap Go
+- New app icon
 
 ## v1.4 | 26-Oct-2026
 - Fixed: Hadith "Continue Reading" now follows your scroll position
