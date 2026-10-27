@@ -18,20 +18,47 @@ function storyEscape(text) {
   });
 }
 
+let storyArtPromise = null;
+
+// Illustrations (story-art.js) sirf pehli baar Library kholne par load hoti hain -- startup slow nahi hota.
+function ensureStoryArt() {
+  if (typeof storyThumb === 'function') return Promise.resolve();
+  if (!storyArtPromise) {
+    storyArtPromise = new Promise(function (resolve) {
+      const script = document.createElement('script');
+      script.src = 'story-art.js';
+      script.onload = function () { resolve(); };
+      script.onerror = function () { storyArtPromise = null; resolve(); };
+      document.head.appendChild(script);
+    });
+  }
+  return storyArtPromise;
+}
+
 function buildStoryLibrary() {
   if (storyLibraryBuilt) return;
   const grid = document.getElementById('story-grid');
   if (!grid || typeof surahList === 'undefined') return;
 
+  const artReady = typeof storyThumb === 'function';
+  if (artReady && !document.getElementById('smg-glow')) {
+    grid.insertAdjacentHTML('beforebegin', storyArtDefs());
+  }
+
   grid.innerHTML = surahList.map(function (s) {
     const ready = storyIsAvailable(s.number);
+    const thumb = artReady ? storyThumb(s.number) : '<span class="sm-thumb-fallback">' + s.number + '</span>';
     return '<button type="button" class="sm-card ' + (ready ? 'sm-card-available' : 'sm-card-soon') + '"' +
       ' onclick="onStoryCardTap(' + s.number + ')"' +
       ' aria-label="' + storyEscape(s.nameEnglish) + (ready ? ', Available' : ', Coming Soon') + '">' +
-      '<span class="sm-card-num">' + s.number + '</span>' +
-      '<p class="sm-card-name">' + storyEscape(s.nameEnglish) + '</p>' +
-      '<p class="sm-card-meaning">' + storyEscape(s.meaning) + '</p>' +
+      '<span class="sm-thumb">' + thumb + '</span>' +
+      '<span class="sm-card-info">' +
+      '<span class="sm-card-top">SURAH ' + String(s.number).padStart(2, '0') + '</span>' +
+      '<span class="sm-card-name">' + storyEscape(s.nameEnglish) + '</span>' +
+      '<span class="sm-card-meaning">' + storyEscape(s.meaning) + '</span>' +
       '<span class="sm-chip">' + (ready ? 'Available' : 'Coming Soon') + '</span>' +
+      '</span>' +
+      (ready ? '<span class="sm-card-arrow" aria-hidden="true">\u203a</span>' : '') +
       '</button>';
   }).join('');
 
@@ -40,15 +67,16 @@ function buildStoryLibrary() {
   if (note) {
     note.textContent = availableCount + ' Available \u00b7 ' + (surahList.length - availableCount) + ' Coming Soon';
   }
-  storyLibraryBuilt = true;
+  // Agar art file load nahi ho payi to agli baar dobara try hoga.
+  storyLibraryBuilt = artReady;
 }
 
 function openStoryLibrary() {
-  buildStoryLibrary();
   showScreen('story-library-screen');
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
+  ensureStoryArt().then(buildStoryLibrary);
 }
 
 function onStoryCardTap(number) {
