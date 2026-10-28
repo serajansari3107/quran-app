@@ -6,6 +6,9 @@
 // Jin Surahs ki story ready hai (abhi sirf Al-Fatiha = 1).
 const STORY_AVAILABLE_SURAHS = [1];
 
+// Har Surah ki story ka content file (sirf available Surahs ki). Step 1B: sirf Al-Fatiha.
+const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js' };
+
 let storyLibraryBuilt = false;
 
 function storyIsAvailable(number) {
@@ -87,16 +90,48 @@ function onStoryCardTap(number) {
   openStory(number);
 }
 
+let storyScriptPromises = {};
+let storyCurrent = null;
+
+// Script ek hi baar load hoti hai (story-detail.js aur Surah ka content file), jab Story screen khulti hai.
+function storyLoadScript(src) {
+  if (!storyScriptPromises[src]) {
+    storyScriptPromises[src] = new Promise(function (resolve) {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = function () { resolve(true); };
+      script.onerror = function () { delete storyScriptPromises[src]; resolve(false); };
+      document.head.appendChild(script);
+    });
+  }
+  return storyScriptPromises[src];
+}
+
 function openStory(number) {
   const meta = surahList.find(function (s) { return s.number === number; });
   if (!meta) return;
+  storyCurrent = number;
   document.getElementById('story-title').textContent = meta.nameEnglish;
   document.getElementById('story-subtitle').textContent = 'Surah ' + meta.number + ' \u00b7 ' + meta.meaning + ' \u00b7 ' + meta.totalAyahs + ' ayahs';
-  document.getElementById('story-hero-num').textContent = meta.number;
-  document.getElementById('story-hero-name').textContent = meta.nameEnglish;
-  document.getElementById('story-hero-meaning').textContent = meta.meaning;
+  const root = document.getElementById('story-detail-root');
+  root.innerHTML = '<p class="sm-loading">Story khul rahi hai...</p>';
   showScreen('story-screen');
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
+
+  const dataFile = STORY_DATA_FILES[number];
+  Promise.all([
+    ensureStoryArt(),
+    storyLoadScript('story-detail.js'),
+    dataFile ? storyLoadScript(dataFile) : Promise.resolve(false)
+  ]).then(function (res) {
+    if (storyCurrent !== number) return;
+    if (!res[1] || !res[2] || typeof renderStoryDetail !== 'function') {
+      root.innerHTML = '<div class="sm-error">Story load nahi ho payi. Internet check karke dobara try karein.<br>' +
+        '<button type="button" onclick="openStory(' + number + ')">Dobara try karein</button></div>';
+      return;
+    }
+    renderStoryDetail(number);
+  });
 }

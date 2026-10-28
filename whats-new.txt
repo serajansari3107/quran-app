@@ -10,10 +10,10 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## v1.6 | 27-Oct-2026
+## v1.6 | 28-Oct-2026
 - New Quran Story Mode card on Home
-- Story Library: 114 Surah cards (Al-Fatiha available, baaki Coming Soon)
-- Al-Fatiha ka story screen ready, Story Coming Soon
+- Story Library: 114 Surah cards (Al-Fatiha available, rest Coming Soon)
+- Al-Fatiha Story Mode: Story, Samjho aur Lessons tabs (Tafsir Ibn Kathir aur Tafheem-ul-Quran ke hawale se)
 - Added Quran Story Mode with illustrated Surah cards.
 
 ## v1.5 | 26-Oct-2026
