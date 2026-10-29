@@ -4,10 +4,10 @@
 // Story ka content Step 1B mein aayega.
 
 // Jin Surahs ki story ready hai (abhi sirf Al-Fatiha = 1).
-const STORY_AVAILABLE_SURAHS = [1];
+const STORY_AVAILABLE_SURAHS = [1, 2];
 
 // Har Surah ki story ka content file (sirf available Surahs ki). Step 1B: sirf Al-Fatiha.
-const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js' };
+const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js', 2: 'data/story/002-al-baqarah.js' };
 
 let storyLibraryBuilt = false;
 

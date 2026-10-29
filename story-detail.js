@@ -178,6 +178,7 @@ function renderStoryDetail(number) {
   if (typeof storyArtDefs === 'function' && !document.getElementById('smg-glow')) {
     root.insertAdjacentHTML('beforebegin', storyArtDefs());
   }
+  if (data.parts) { renderStoryParts(number, data, meta); return; } // Parts System (lambi Surahs)
   const tab = function (id, label) {
     return '<button type="button" role="tab" id="story-tab-' + id + '" class="sm-tab" aria-controls="story-panel-' + id + '" aria-selected="false" tabindex="-1"' +
       ' onclick="switchStoryTab(\'' + id + '\')" onkeydown="storyTabKey(event,\'' + id + '\')">' + label + '</button>';
@@ -190,4 +191,109 @@ function renderStoryDetail(number) {
     '<div id="story-panel-lessons" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-lessons">' + sdLessonsPanel(data) + '</div>' +
     sdSources(data);
   switchStoryTab('story');
+}
+
+// ---------- Parts System (lambi Surahs ke liye, jaise Al-Baqarah) ----------
+// Jis Surah ke story data mein "parts" ho, uska content yahan se dikhta hai. Al-Fatiha (bina parts) upar wale rasta se hi chalti hai.
+// Data format: data/story/002-al-baqarah.js dekhein (groups, parts[ {n,from,to,g,title,sub,heads,intro,points,key,src,samjho,lessons} ]).
+var storyPartCurrent = 0; // 0 = Parts ki list
+
+function sdPartRange(p) {
+  return p.from === p.to ? 'Ayah ' + p.from : 'Ayah ' + p.from + '\u2013' + p.to;
+}
+
+function sdScrollTop() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
+function sdPartsList(number, data) {
+  let html = '<div class="sm-note">' + sdEsc(data.disclaimer) + '</div>' +
+    '<div class="sm-note sm-note-gold">' + sdEsc(data.partsNote) + '</div>';
+  let lastGroup = 0;
+  data.parts.forEach(function (p) {
+    if (p.g !== lastGroup) {
+      lastGroup = p.g;
+      const g = data.groups[p.g - 1];
+      if (g) {
+        html += '<div class="sm-group"><h3 class="sm-group-h">' + sdEsc(g.title) + '</h3>' +
+          '<p class="sm-group-r">' + sdEsc(sdPartRange(g)) + '</p><p class="sm-group-t">' + sdEsc(g.text) + '</p></div>';
+      }
+    }
+    html += '<button type="button" class="sm-part-card" onclick="openStoryPart(' + number + ',' + p.n + ')">' +
+      '<span class="sm-part-badge">' + p.n + '</span>' +
+      '<span class="sm-part-info"><span class="sm-part-title">' + sdEsc(p.title) + '</span>' +
+      '<span class="sm-part-sub">' + sdEsc(p.sub) + '</span>' +
+      '<span class="sm-part-range">' + sdEsc(sdPartRange(p)) + '</span></span>' +
+      '<span class="sm-part-go" aria-hidden="true">&rsaquo;</span></button>';
+  });
+  return html;
+}
+
+function sdPartStoryPanel(part, number) {
+  let html = '<div class="sm-note sm-note-gold">Is Part ki hadd: ' + sdEsc(sdPartRange(part)) +
+    '. Yeh hadd Tafsir Ibn Kathir ke tafsir-entries par hai. Us hisse ke unwan (English): ' +
+    sdEsc(part.heads.join(' \u00b7 ')) + '</div>';
+  html += '<p class="sm-para">' + sdEsc(part.intro) + '</p>';
+  part.points.forEach(function (pt, i) {
+    const boxes = [];
+    for (let a = pt.r[0]; a <= pt.r[1]; a++) boxes.push(sdAyahBox(number, a));
+    const rangeLabel = pt.r[0] === pt.r[1] ? 'Ayah ' + pt.r[0] : 'Ayah ' + pt.r[0] + '\u2013' + pt.r[1];
+    html += '<article class="sm-sec">' +
+      '<header class="sm-sec-head"><span class="sm-sec-n">' + (i + 1) + '</span><h3>' + sdEsc(pt.h) + '</h3></header>' +
+      '<div class="sm-ayah-chips"><span class="sm-ayah-chip">' + sdEsc(rangeLabel) + '</span></div>' +
+      '<p class="sm-para">' + sdEsc(pt.t) + '</p>' +
+      '<details class="sm-ref sm-ayat-open"><summary>Ayat dekhein (' + sdEsc(rangeLabel) + ')</summary>' + boxes.join('') + '</details>' +
+      '</article>';
+  });
+  html += '<article class="sm-sec sm-sec-summary"><header class="sm-sec-head"><h3>Is Part ka khulasa</h3></header>' +
+    '<p class="sm-para">' + sdEsc(part.key) + '</p>' + sdSrc(part.src) + '</article>';
+  return html;
+}
+
+function sdPartView(number, data, part) {
+  const tab = function (id, label) {
+    return '<button type="button" role="tab" id="story-tab-' + id + '" class="sm-tab" aria-controls="story-panel-' + id + '" aria-selected="false" tabindex="-1"' +
+      ' onclick="switchStoryTab(\'' + id + '\')" onkeydown="storyTabKey(event,\'' + id + '\')">' + label + '</button>';
+  };
+  const total = data.parts.length;
+  const prev = part.n > 1 ? '<button type="button" class="sm-part-nav-btn" onclick="openStoryPart(' + number + ',' + (part.n - 1) + ')">&lsaquo; Pichla Part</button>' : '<span></span>';
+  const next = part.n < total ? '<button type="button" class="sm-part-nav-btn" onclick="openStoryPart(' + number + ',' + (part.n + 1) + ')">Agla Part &rsaquo;</button>' : '<span></span>';
+  return '<button type="button" class="sm-part-back" onclick="showStoryParts(' + number + ')">&larr; Saare Parts</button>' +
+    '<section class="sm-part-hero"><p class="sm-hero-kicker">PART ' + part.n + ' / ' + total + ' \u00b7 ' + sdEsc(sdPartRange(part)) + '</p>' +
+    '<h2 class="sm-part-hero-title">' + sdEsc(part.title) + '</h2><p class="sm-hero-meaning">' + sdEsc(part.sub) + '</p></section>' +
+    '<div id="story-tabs" class="sm-tabs" role="tablist" aria-label="Story Mode sections">' +
+      tab('story', 'Story') + tab('samjho', 'Samjho') + tab('lessons', 'Lessons') + '</div>' +
+    '<div id="story-panel-story" class="sm-panel" role="tabpanel" aria-labelledby="story-tab-story">' + sdPartStoryPanel(part, number) + '</div>' +
+    '<div id="story-panel-samjho" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-samjho">' + sdSamjhoPanel({ concepts: part.samjho }) + '</div>' +
+    '<div id="story-panel-lessons" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-lessons">' + sdLessonsPanel({ lessons: part.lessons, lessonsNote: data.lessonsNote }) + '</div>' +
+    '<div class="sm-part-nav">' + prev + next + '</div>' +
+    sdSources(data);
+}
+
+function showStoryParts(number) {
+  const root = document.getElementById('story-detail-root');
+  const data = window['storyData' + String(number).padStart(3, '0')];
+  const meta = surahList.find(function (s) { return s.number === number; });
+  if (!root || !data || !meta || !data.parts) return;
+  storyPartCurrent = 0;
+  root.innerHTML = sdHero(meta, data) + sdPartsList(number, data) + sdSources(data);
+  sdScrollTop();
+}
+
+function openStoryPart(number, n) {
+  const root = document.getElementById('story-detail-root');
+  const data = window['storyData' + String(number).padStart(3, '0')];
+  if (!root || !data || !data.parts) return;
+  const part = data.parts.find(function (p) { return p.n === n; });
+  if (!part) return;
+  storyPartCurrent = n;
+  root.innerHTML = sdPartView(number, data, part);
+  switchStoryTab('story');
+  sdScrollTop();
+}
+
+function renderStoryParts(number, data, meta) {
+  showStoryParts(number);
 }
