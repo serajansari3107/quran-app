@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v55";
+const CACHE_NAME = "quran-app-v56";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -491,27 +491,55 @@ const ASSETS_TO_CACHE = [
   "fonts/IndopakNastaleeq.ttf"
 ];
 
-// cache: "reload" = browser ki purani HTTP cache bypass karke fresh file laata hai,
-// taaki naye cache mein purani + nayi files mix na hon. Ek file fail ho to 1 baar retry.
-function cacheFresh(cache, url) {
+// FAST UPDATE: file ki purani (cached) copy ka ETag / Last-Modified server ko bheja jata hai.
+//  - File badli nahi  -> server sirf chhota "304 Not Modified" bhejta hai, purani copy hi naye cache mein rakh li jati hai.
+//  - File badli hai   -> sirf wahi poori download hoti hai.
+//  - Server ETag/Last-Modified na de ya purani copy na ho -> file poori download hoti hai (pehle jaisa).
+// "?cb=" sirf server/CDN ki purani copy se bachne ke liye hai; file cache mein asli naam se hi save hoti hai.
+// Ek file fail ho to 1 baar retry.
+function cacheFresh(cache, url, stamp) {
   function attempt() {
-    return fetch(new Request(url, { cache: "reload" })).then(function (response) {
-      if (!response.ok) throw new Error("Could not cache " + url);
-      return cache.put(url, response);
+    return caches.match(url).then(function (old) {
+      const headers = new Headers();
+      const etag = old && old.headers.get("ETag");
+      const lastModified = old && old.headers.get("Last-Modified");
+      if (etag) headers.set("If-None-Match", etag);
+      else if (lastModified) headers.set("If-Modified-Since", lastModified);
+      const conditional = !!(etag || lastModified);
+      const fetchUrl = url + (url.indexOf("?") === -1 ? "?" : "&") + "cb=" + stamp;
+      return fetch(new Request(fetchUrl, { cache: conditional ? "no-store" : "reload", headers: headers })).then(function (response) {
+        if (response.status === 304 && old) return cache.put(url, old);
+        if (!response.ok) throw new Error("Could not cache " + url);
+        return cache.put(url, response);
+      });
     });
   }
   return attempt().catch(attempt);
 }
 
-// Ek saath sirf 8 files download hoti hain (480+ files parallel bhejne se install fail ho sakta tha)
+// Page ko batata hai kitni files ho chuki (Update popup mein % dikhane ke liye)
+function tellProgress(done, total) {
+  return self.clients.matchAll({ includeUncontrolled: true }).then(function (clients) {
+    clients.forEach(function (client) { client.postMessage({ type: "UPDATE_PROGRESS", done: done, total: total }); });
+  }).catch(function () {});
+}
+
+// Ek saath sirf 12 files check hoti hain (480+ files parallel bhejne se install fail ho sakta tha)
 function cacheAllFresh(cache, urls) {
+  const stamp = Date.now();
+  const total = urls.length;
   let next = 0;
+  let done = 0;
   function runner() {
     if (next >= urls.length) return Promise.resolve();
-    return cacheFresh(cache, urls[next++]).then(runner);
+    return cacheFresh(cache, urls[next++], stamp).then(function () {
+      done++;
+      if (done % 10 === 0 || done === total) tellProgress(done, total);
+      return runner();
+    });
   }
   const runners = [];
-  for (let i = 0; i < 8; i++) runners.push(runner());
+  for (let i = 0; i < 12; i++) runners.push(runner());
   return Promise.all(runners);
 }
 

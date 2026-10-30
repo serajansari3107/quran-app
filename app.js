@@ -2162,7 +2162,30 @@ function dismissUpdate() {
   document.getElementById('update-popup').classList.add('hidden');
 }
 
+let updateWatchdog = null;
+
+// Update ke dauraan button par % dikhata hai (service worker se progress aata hai)
+function showUpdateProgress(done, total) {
+  if (!total) return;
+  document.getElementById('update-now-btn').textContent = 'Updating... ' + Math.min(100, Math.round(done * 100 / total)) + '%';
+  startUpdateWatchdog();
+}
+
+// 2 minute tak koi progress na aaye to "failed" dikhao (pehle "Updating..." bina ant ke likha rehta tha)
+function startUpdateWatchdog() {
+  clearTimeout(updateWatchdog);
+  updateWatchdog = setTimeout(function () { if (updateRequested) updateFailed(); }, 120000);
+}
+
+// Reload se pehle flag save hota hai, taake naye app mein "App updated" dikhe
+function reloadAfterUpdate() {
+  clearTimeout(updateWatchdog);
+  try { saveJSON('justUpdated', true); } catch (e) {}
+  window.location.reload();
+}
+
 function updateFailed() {
+  clearTimeout(updateWatchdog);
   updateRequested = false;
   const btn = document.getElementById('update-now-btn');
   btn.disabled = false;
@@ -2188,9 +2211,10 @@ function applyUpdate() {
   btn.disabled = true;
   btn.textContent = 'Updating...';
   updateRequested = true;
+  startUpdateWatchdog();
 
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
-    window.location.reload();
+    reloadAfterUpdate();
     return;
   }
 
@@ -2226,6 +2250,12 @@ applyTransliterationStyle();
 applyDisplayMode();
 applyHadithDisplayMode();
 applyHadithFontSizes();
+
+// Update ke baad reload hone par ek baar confirm dikhao
+if (loadJSON('justUpdated', false)) {
+  localStorage.removeItem('justUpdated');
+  showToast('App updated \u2713');
+}
 
 refreshWhatsNewDot();
 
@@ -2266,13 +2296,14 @@ if ('serviceWorker' in navigator) {
 
   // Reload ONLY after the user pressed "Update Now" (never on first install)
   navigator.serviceWorker.addEventListener('controllerchange', function () {
-    if (updateRequested) window.location.reload();
+    if (updateRequested) reloadAfterUpdate();
   });
 
   navigator.serviceWorker.addEventListener('message', function (event) {
     const type = event.data && event.data.type;
     if (!updateRequested) return;
-    if (type === 'REFRESH_DONE') window.location.reload();
+    if (type === 'UPDATE_PROGRESS') showUpdateProgress(event.data.done, event.data.total);
+    if (type === 'REFRESH_DONE') reloadAfterUpdate();
     if (type === 'REFRESH_FAILED') updateFailed();
   });
 }
