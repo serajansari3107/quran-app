@@ -713,7 +713,7 @@ function updateReadingPanel() {
   document.querySelectorAll('[data-spacing]').forEach(function (btn) {
     btn.classList.toggle('active', btn.getAttribute('data-spacing') === spacingName);
   });
-  const fontStyle = loadJSON('arabicFontStyle', 'nastaliq');
+  const fontStyle = getArabicFontStyle();
   document.querySelectorAll('[data-fontstyle]').forEach(function (btn) {
     btn.classList.toggle('active', btn.getAttribute('data-fontstyle') === fontStyle);
   });
@@ -1989,7 +1989,13 @@ function applyTranslationLanguage() {
   document.getElementById('lang-english').classList.toggle('active', lang === 'english');
 }
 
-// ---------- Arabic font style (Nastaliq vs Uthmani) ----------
+// ---------- Arabic font style (Indo-Pak vs Uthmani) ----------
+
+// Default: Indo-Pak. Purani saved value 'nastaliq' (ya khali/galat value) ho to bhi Indo-Pak dikhta hai.
+function getArabicFontStyle() {
+  const style = loadJSON('arabicFontStyle', 'indopak');
+  return (style === 'indopak' || style === 'uthmani') ? style : 'indopak';
+}
 
 function setArabicFontStyle(style) {
   saveJSON('arabicFontStyle', style);
@@ -1997,18 +2003,14 @@ function setArabicFontStyle(style) {
 }
 
 function applyArabicFontStyle() {
-  const style = loadJSON('arabicFontStyle', 'nastaliq');
+  const style = getArabicFontStyle();
   let fontFamily;
   if (style === 'uthmani') {
     fontFamily = '"Scheherazade New", serif';
-  } else if (style === 'indopak') {
-    fontFamily = '"Indopak Nastaleeq", "Noto Nastaliq Urdu", serif';
   } else {
-    fontFamily = '"Noto Nastaliq Urdu", serif';
+    fontFamily = '"Indopak Nastaleeq", "Scheherazade New", serif';
   }
   document.documentElement.style.setProperty('--arabic-font-family', fontFamily);
-
-  document.getElementById('font-nastaliq').classList.toggle('active', style === 'nastaliq');
   document.getElementById('font-indopak').classList.toggle('active', style === 'indopak');
   document.getElementById('font-uthmani').classList.toggle('active', style === 'uthmani');
   updateReadingPanel();

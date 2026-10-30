@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v54";
+const CACHE_NAME = "quran-app-v55";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -486,7 +486,6 @@ const ASSETS_TO_CACHE = [
   "icons/icon-72.png",
   "icons/icon-96.png",
   "icons/icon-maskable-512.png",
-  "fonts/NotoNastaliqUrdu.ttf",
   "fonts/ScheherazadeNew-Bold.ttf",
   "fonts/ScheherazadeNew-Regular.ttf",
   "fonts/IndopakNastaleeq.ttf"

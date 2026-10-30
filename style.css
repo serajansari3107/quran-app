@@ -1,13 +1,6 @@
-/* Noto Nastaliq Urdu and Scheherazade New are bundled locally in fonts/ --
+/* Scheherazade New is bundled locally in fonts/ --
    fully offline from the very first time you open the app, no internet
-   needed ever for these two, not even once. */
-
-@font-face {
-  font-family: "Noto Nastaliq Urdu";
-  src: url("fonts/NotoNastaliqUrdu.ttf") format("truetype");
-  font-weight: 400 700;
-  font-display: swap;
-}
+   needed ever for it, not even once. */
 
 @font-face {
   font-family: "Scheherazade New";
@@ -47,7 +40,7 @@
   --cream: #e8dcc0;
   --arabic-font-size: 20px;
   --translation-font-size: 19px;
-  --arabic-font-family: "Noto Nastaliq Urdu", serif;
+  --arabic-font-family: "Indopak Nastaleeq", "Scheherazade New", serif;
   --hadith-arabic-font-size: 22px;
   --hadith-english-font-size: 15px;
 }

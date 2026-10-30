@@ -120,7 +120,7 @@
 
 .hd-book-ar {
   margin: 2px 0 4px;
-  font-family: "Scheherazade New", "Noto Nastaliq Urdu", serif;
+  font-family: "Scheherazade New", serif;
   font-size: 19px;
   line-height: 1.6;
   color: var(--gold);
@@ -175,7 +175,7 @@
 
 .hd-hero-ar {
   margin: 0 0 2px;
-  font-family: "Scheherazade New", "Noto Nastaliq Urdu", serif;
+  font-family: "Scheherazade New", serif;
   font-size: 28px;
   line-height: 1.7;
   color: var(--gold);
@@ -311,7 +311,7 @@
 
 .hd-chapter-ar {
   margin: 6px 0 0;
-  font-family: "Scheherazade New", "Noto Nastaliq Urdu", serif;
+  font-family: "Scheherazade New", serif;
   font-size: 24px;
   line-height: 1.8;
   color: var(--gold);
