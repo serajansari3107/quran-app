@@ -10,12 +10,13 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## v1.6 | 29-Oct-2026
+## v1.6 | 30-Oct-2026
 - New Quran Story Mode card on Home
 - Story Library: 114 Surah cards (Al-Fatiha available, rest Coming Soon)
 - Al-Fatiha Story Mode: Story, Samjho aur Lessons tabs (Tafsir Ibn Kathir aur Tafheem-ul-Quran ke hawale se)
 - Added Quran Story Mode with illustrated Surah cards.
 - Al-Baqarah Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
+- Aal-e-Imran Story Mode: 20 Parts, In Every Part there is Story, Samjho aur Lessons
 - Offline fix: Now App always opens without internet
 
 ## v1.5 | 26-Oct-2026
