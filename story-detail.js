@@ -54,6 +54,52 @@ function sdSrc(list) {
   return '<p class="sm-src"><strong>Hawala:</strong> ' + list.map(sdEsc).join(' &middot; ') + '</p>';
 }
 
+// ---------- Mark as read (storage helpers story-mode.js mein hain) ----------
+function sdReadIcon() {
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle class="sm-read-ring" cx="12" cy="12" r="9.5"/><path class="sm-read-tick" d="M7.5 12.5l3 3 6-6.5"/></svg>';
+}
+
+// Chhota "Mark as read" button. part = 0 matlab poori Surah (Parts na ho to), warna Part number.
+function sdReadBtn(number, part) {
+  const on = storyIsRead(number, part);
+  return '<button type="button" class="sm-read-btn' + (on ? ' is-read' : '') + '" data-surah="' + number + '" data-part="' + (part || 0) + '"' +
+    ' aria-pressed="' + (on ? 'true' : 'false') + '" onclick="toggleStoryRead(' + number + ',' + (part || 0) + ')">' +
+    sdReadIcon() + '<span class="sm-read-label">' + (on ? 'Read' : 'Mark as read') + '</span></button>';
+}
+
+function sdReadRow(number, part) {
+  return '<div class="sm-read-row">' + sdReadBtn(number, part) + '</div>';
+}
+
+// Padhne ke baad neeche wali bar
+function sdReadBottom(number, part) {
+  return '<div class="sm-read-bottom"><p>' + (part ? 'Is Part ko padh liya?' : 'Story padh li?') + '</p>' + sdReadBtn(number, part) + '</div>';
+}
+
+// Parts list ke upar: "3 of 24 Parts read" + chhoti progress bar
+function sdReadProgress(number, data) {
+  const total = data.parts.length;
+  const done = storyReadCount(number);
+  return '<div class="sm-read-progress"><span>' + (done === total ? '\u2713 All ' + total + ' Parts read' : done + ' of ' + total + ' Parts read') + '</span>' +
+    '<span class="sm-read-progress-bar" aria-hidden="true"><span style="width:' + Math.round(done * 100 / total) + '%"></span></span></div>';
+}
+
+// Button dabane par: save karo, phir us Surah/Part ke saare buttons ek saath badal do
+function toggleStoryRead(number, part) {
+  const next = !storyIsRead(number, part || 0);
+  if (!storySetRead(number, part || 0, next)) {
+    showToast('Could not save (storage unavailable)');
+    return;
+  }
+  document.querySelectorAll('.sm-read-btn[data-surah="' + number + '"][data-part="' + (part || 0) + '"]').forEach(function (btn) {
+    btn.classList.toggle('is-read', next);
+    btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+    btn.querySelector('.sm-read-label').textContent = next ? 'Read' : 'Mark as read';
+  });
+  if (typeof storyUpdateReadBadges === 'function') storyUpdateReadBadges();
+  showToast(next ? 'Marked as read \u2713' : 'Removed from read');
+}
+
 function sdHero(meta, data) {
   const art = (typeof storyThumb === 'function')
     ? storyThumb(meta.number).replace('<svg ', '<svg preserveAspectRatio="xMidYMid slice" ')
@@ -183,12 +229,13 @@ function renderStoryDetail(number) {
     return '<button type="button" role="tab" id="story-tab-' + id + '" class="sm-tab" aria-controls="story-panel-' + id + '" aria-selected="false" tabindex="-1"' +
       ' onclick="switchStoryTab(\'' + id + '\')" onkeydown="storyTabKey(event,\'' + id + '\')">' + label + '</button>';
   };
-  root.innerHTML = sdHero(meta, data) +
+  root.innerHTML = sdHero(meta, data) + sdReadRow(number, 0) +
     '<div id="story-tabs" class="sm-tabs" role="tablist" aria-label="Story Mode sections">' +
       tab('story', 'Story') + tab('samjho', 'Samjho') + tab('lessons', 'Lessons') + '</div>' +
     '<div id="story-panel-story" class="sm-panel" role="tabpanel" aria-labelledby="story-tab-story">' + sdStoryPanel(data, number) + '</div>' +
     '<div id="story-panel-samjho" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-samjho">' + sdSamjhoPanel(data) + '</div>' +
     '<div id="story-panel-lessons" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-lessons">' + sdLessonsPanel(data) + '</div>' +
+    sdReadBottom(number, 0) +
     sdSources(data);
   switchStoryTab('story');
 }
@@ -209,7 +256,7 @@ function sdScrollTop() {
 }
 
 function sdPartsList(number, data) {
-  let html = '<div class="sm-note">' + sdEsc(data.disclaimer) + '</div>' +
+  let html = sdReadProgress(number, data) + '<div class="sm-note">' + sdEsc(data.disclaimer) + '</div>' +
     '<div class="sm-note sm-note-gold">' + sdEsc(data.partsNote) + '</div>';
   let lastGroup = 0;
   data.parts.forEach(function (p) {
@@ -221,11 +268,13 @@ function sdPartsList(number, data) {
           '<p class="sm-group-r">' + sdEsc(sdPartRange(g)) + '</p><p class="sm-group-t">' + sdEsc(g.text) + '</p></div>';
       }
     }
-    html += '<button type="button" class="sm-part-card" onclick="openStoryPart(' + number + ',' + p.n + ')">' +
+    const partRead = storyIsRead(number, p.n);
+    html += '<button type="button" class="sm-part-card' + (partRead ? ' sm-part-read' : '') + '" onclick="openStoryPart(' + number + ',' + p.n + ')">' +
       '<span class="sm-part-badge">' + p.n + '</span>' +
       '<span class="sm-part-info"><span class="sm-part-title">' + sdEsc(p.title) + '</span>' +
       '<span class="sm-part-sub">' + sdEsc(p.sub) + '</span>' +
       '<span class="sm-part-range">' + sdEsc(sdPartRange(p)) + '</span></span>' +
+      (partRead ? '<span class="sm-part-tick" role="img" aria-label="Read">' + sdReadIcon() + '</span>' : '') +
       '<span class="sm-part-go" aria-hidden="true">&rsaquo;</span></button>';
   });
   return html;
@@ -262,12 +311,13 @@ function sdPartView(number, data, part) {
   const next = part.n < total ? '<button type="button" class="sm-part-nav-btn" onclick="openStoryPart(' + number + ',' + (part.n + 1) + ')">Agla Part &rsaquo;</button>' : '<span></span>';
   return '<button type="button" class="sm-part-back" onclick="showStoryParts(' + number + ')">&larr; Saare Parts</button>' +
     '<section class="sm-part-hero"><p class="sm-hero-kicker">PART ' + part.n + ' / ' + total + ' \u00b7 ' + sdEsc(sdPartRange(part)) + '</p>' +
-    '<h2 class="sm-part-hero-title">' + sdEsc(part.title) + '</h2><p class="sm-hero-meaning">' + sdEsc(part.sub) + '</p></section>' +
+    '<h2 class="sm-part-hero-title">' + sdEsc(part.title) + '</h2><p class="sm-hero-meaning">' + sdEsc(part.sub) + '</p>' + sdReadRow(number, part.n) + '</section>' +
     '<div id="story-tabs" class="sm-tabs" role="tablist" aria-label="Story Mode sections">' +
       tab('story', 'Story') + tab('samjho', 'Samjho') + tab('lessons', 'Lessons') + '</div>' +
     '<div id="story-panel-story" class="sm-panel" role="tabpanel" aria-labelledby="story-tab-story">' + sdPartStoryPanel(part, number) + '</div>' +
     '<div id="story-panel-samjho" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-samjho">' + sdSamjhoPanel({ concepts: part.samjho }) + '</div>' +
     '<div id="story-panel-lessons" class="sm-panel hidden" role="tabpanel" aria-labelledby="story-tab-lessons">' + sdLessonsPanel({ lessons: part.lessons, lessonsNote: data.lessonsNote }) + '</div>' +
+    sdReadBottom(number, part.n) +
     '<div class="sm-part-nav">' + prev + next + '</div>' +
     sdSources(data);
 }

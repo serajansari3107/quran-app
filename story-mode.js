@@ -9,6 +9,91 @@ const STORY_AVAILABLE_SURAHS = [1, 2, 3];
 // Har Surah ki story ka content file (sirf available Surahs ki). Step 1B: sirf Al-Fatiha.
 const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js', 2: 'data/story/002-al-baqarah.js', 3: 'data/story/003-aal-e-imran.js' };
 
+// Parts wali Surahs mein kitne Parts hain (library card par "3/24 read" dikhane ke liye).
+// Nayi Parts wali Surah add karo to yahan uska count bhi likho. Parts na ho (jaise Al-Fatiha) to yahan mat likho.
+const STORY_PART_COUNTS = { 2: 24, 3: 20 };
+
+// ---------- Mark as read (device mein save: localStorage 'storyRead') ----------
+// Format: { "1": true, "2": [1, 5, 7], "3": [2] }  (Parts wali Surah = padhe huye Part numbers ki list)
+// localStorage app update / cache change se delete nahi hota; sirf app uninstall ya browser ka site data clear karne par jata hai.
+const STORY_READ_KEY = 'storyRead';
+
+function storyPartTotal(number) {
+  return STORY_PART_COUNTS[number] || 0;
+}
+
+function storyReadLoad() {
+  try {
+    const raw = localStorage.getItem(STORY_READ_KEY);
+    const obj = raw ? JSON.parse(raw) : {};
+    return (obj && typeof obj === 'object' && !Array.isArray(obj)) ? obj : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function storyReadParts(number) {
+  const total = storyPartTotal(number);
+  const list = storyReadLoad()[number];
+  if (!Array.isArray(list)) return [];
+  return list.filter(function (n, i) { return Number.isInteger(n) && n >= 1 && n <= total && list.indexOf(n) === i; });
+}
+
+function storyReadCount(number) {
+  return storyReadParts(number).length;
+}
+
+// part na do to poori Surah ka haal (Parts wali Surah = saare Parts padh liye)
+function storyIsRead(number, part) {
+  const total = storyPartTotal(number);
+  if (!total) return storyReadLoad()[number] === true;
+  if (part) return storyReadParts(number).indexOf(part) !== -1;
+  return storyReadCount(number) === total;
+}
+
+// Save ho gaya to true, nahi (storage band / full) to false
+function storySetRead(number, part, value) {
+  const all = storyReadLoad();
+  if (storyPartTotal(number)) {
+    let list = storyReadParts(number).filter(function (n) { return n !== part; });
+    if (value) list.push(part);
+    list.sort(function (a, b) { return a - b; });
+    if (list.length) all[number] = list; else delete all[number];
+  } else if (value) {
+    all[number] = true;
+  } else {
+    delete all[number];
+  }
+  try {
+    localStorage.setItem(STORY_READ_KEY, JSON.stringify(all));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function storyReadChipHtml(number) {
+  if (storyIsRead(number)) return '<span class="sm-chip sm-chip-read">\u2713 Read</span>';
+  const total = storyPartTotal(number);
+  const done = total ? storyReadCount(number) : 0;
+  if (done) return '<span class="sm-chip sm-chip-progress">' + done + '/' + total + ' read</span>';
+  return '';
+}
+
+// Library cards par "Read" / "3/24 read" chip taaza karta hai
+function storyUpdateReadBadges() {
+  const grid = document.getElementById('story-grid');
+  if (!grid) return;
+  STORY_AVAILABLE_SURAHS.forEach(function (n) {
+    const row = grid.querySelector('.sm-chip-row[data-surah="' + n + '"]');
+    if (!row) return;
+    row.innerHTML = '<span class="sm-chip">Available</span>' + storyReadChipHtml(n);
+    const card = row.closest('.sm-card');
+    const meta = surahList.find(function (s) { return s.number === n; });
+    if (card && meta) card.setAttribute('aria-label', meta.nameEnglish + ', Available' + (storyIsRead(n) ? ', Read' : ''));
+  });
+}
+
 let storyLibraryBuilt = false;
 
 function storyIsAvailable(number) {
@@ -59,7 +144,8 @@ function buildStoryLibrary() {
       '<span class="sm-card-top">SURAH ' + String(s.number).padStart(2, '0') + '</span>' +
       '<span class="sm-card-name">' + storyEscape(s.nameEnglish) + '</span>' +
       '<span class="sm-card-meaning">' + storyEscape(s.meaning) + '</span>' +
-      '<span class="sm-chip">' + (ready ? 'Available' : 'Coming Soon') + '</span>' +
+      '<span class="sm-chip-row" data-surah="' + s.number + '"><span class="sm-chip">' + (ready ? 'Available' : 'Coming Soon') + '</span>' +
+      (ready ? storyReadChipHtml(s.number) : '') + '</span>' +
       '</span>' +
       (ready ? '<span class="sm-card-arrow" aria-hidden="true">\u203a</span>' : '') +
       '</button>';
@@ -79,7 +165,10 @@ function openStoryLibrary() {
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
-  ensureStoryArt().then(buildStoryLibrary);
+  ensureStoryArt().then(function () {
+    buildStoryLibrary();
+    storyUpdateReadBadges();
+  });
 }
 
 function onStoryCardTap(number) {

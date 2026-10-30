@@ -17,7 +17,10 @@
 - Added Quran Story Mode with illustrated Surah cards.
 - Al-Baqarah Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
 - Aal-e-Imran Story Mode: 20 Parts, In Every Part there is Story, Samjho aur Lessons
+- "Mark as read" in Quran Story Mode. Mark any story or Part as read; progress is saved on your device and stays after app updates.
 - Offline fix: Now App always opens without internet
+- Faster app updates with a progress indicator and an "App updated" confirmation.
+- Arabic text now uses the Indo-Pak style by default. The Nastaliq option has been removed.
 
 ## v1.5 | 26-Oct-2026
 - New premium Salah screen: next prayer, live countdown and Now / Next highlight
