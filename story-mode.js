@@ -4,14 +4,14 @@
 // Story ka content Step 1B mein aayega.
 
 // Jin Surahs ki story ready hai (abhi sirf Al-Fatiha = 1).
-const STORY_AVAILABLE_SURAHS = [1, 2, 3];
+const STORY_AVAILABLE_SURAHS = [1, 2, 3, 4];
 
 // Har Surah ki story ka content file (sirf available Surahs ki). Step 1B: sirf Al-Fatiha.
-const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js', 2: 'data/story/002-al-baqarah.js', 3: 'data/story/003-aal-e-imran.js' };
+const STORY_DATA_FILES = { 1: 'data/story/001-al-fatiha.js', 2: 'data/story/002-al-baqarah.js', 3: 'data/story/003-aal-e-imran.js', 4: 'data/story/004-an-nisa.js' };
 
 // Parts wali Surahs mein kitne Parts hain (library card par "3/24 read" dikhane ke liye).
 // Nayi Parts wali Surah add karo to yahan uska count bhi likho. Parts na ho (jaise Al-Fatiha) to yahan mat likho.
-const STORY_PART_COUNTS = { 2: 24, 3: 20 };
+const STORY_PART_COUNTS = { 2: 24, 3: 20, 4: 24 };
 
 // ---------- Mark as read (device mein save: localStorage 'storyRead') ----------
 // Format: { "1": true, "2": [1, 5, 7], "3": [2] }  (Parts wali Surah = padhe huye Part numbers ki list)

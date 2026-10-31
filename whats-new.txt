@@ -10,6 +10,9 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.7 | 31-Oct-2026
+- An-Nisa Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
+
 ## v1.6 | 30-Oct-2026
 - New Quran Story Mode card on Home
 - Story Library: 114 Surah cards (Al-Fatiha available, rest Coming Soon)
