@@ -12,6 +12,8 @@
 
 ## v1.7 | 31-Oct-2026
 - An-Nisa Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
+- Al-Maidah Story Mode: 22 Parts, each with Story, Samjho and Lessons
+- Faster and smoother app updates: shows 100% and then "App Updated" before restarting
 
 ## v1.6 | 30-Oct-2026
 - New Quran Story Mode card on Home

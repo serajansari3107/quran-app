@@ -385,12 +385,12 @@ function toggleBookmark(surahNum, ayahNum) {
 
 let toastTimer = null;
 
-function showToast(message) {
+function showToast(message, duration) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
   toast.classList.remove('hidden');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { toast.classList.add('hidden'); }, 1800);
+  toastTimer = setTimeout(function () { toast.classList.add('hidden'); }, duration || 1800);
 }
 
 function copyText(text) {
@@ -2177,11 +2177,24 @@ function startUpdateWatchdog() {
   updateWatchdog = setTimeout(function () { if (updateRequested) updateFailed(); }, 120000);
 }
 
-// Reload se pehle flag save hota hai, taake naye app mein "App updated" dikhe
+// Update poora hone par: pehle popup mein 100% aur "App Updated" dikhta hai, phir app reload hoti hai.
+// Flag pehle hi save hota hai, taake reload ke baad bhi "App Updated" dikhe.
+let updateFinishing = false;
 function reloadAfterUpdate() {
+  if (updateFinishing) return;
+  updateFinishing = true;
   clearTimeout(updateWatchdog);
   try { saveJSON('justUpdated', true); } catch (e) {}
-  window.location.reload();
+  const btn = document.getElementById('update-now-btn');
+  btn.disabled = true;
+  btn.textContent = 'Updating... 100%';
+  document.getElementById('update-popup').classList.remove('hidden');
+  setTimeout(function () {
+    document.getElementById('upd-title').textContent = 'App Updated';
+    document.getElementById('update-version').textContent = 'App Updated \u2713';
+    btn.textContent = 'App Updated \u2713';
+  }, 400);
+  setTimeout(function () { window.location.reload(); }, 1600);
 }
 
 function updateFailed() {
@@ -2219,6 +2232,7 @@ function applyUpdate() {
   }
 
   navigator.serviceWorker.getRegistration().then(function (reg) {
+    if (reg.waiting) return reg; // naya version pehle se download ho chuka hai: seedha activate (internet re-check ka intezar nahi)
     return reg.update().catch(function () {}).then(function () { return reg; });
   }).then(function (reg) {
     const pending = reg.waiting || reg.installing;
@@ -2254,7 +2268,7 @@ applyHadithFontSizes();
 // Update ke baad reload hone par ek baar confirm dikhao
 if (loadJSON('justUpdated', false)) {
   localStorage.removeItem('justUpdated');
-  showToast('App updated \u2713');
+  setTimeout(function () { showToast('App Updated \u2713', 3500); }, 500);
 }
 
 refreshWhatsNewDot();

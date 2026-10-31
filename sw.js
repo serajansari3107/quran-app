@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v57";
+const CACHE_NAME = "quran-app-v58";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -16,6 +16,7 @@ const ASSETS_TO_CACHE = [
   "data/story/002-al-baqarah.js",
   "data/story/003-aal-e-imran.js",
   "data/story/004-an-nisa.js",
+  "data/story/005-al-maidah.js",
   "manifest.json",
   "whats-new.txt",
   "adhan.min.js",
@@ -525,7 +526,7 @@ function tellProgress(done, total) {
   }).catch(function () {});
 }
 
-// Ek saath sirf 12 files check hoti hain (480+ files parallel bhejne se install fail ho sakta tha)
+// Ek saath sirf 20 files check hoti hain (480+ files parallel bhejne se install fail ho sakta tha)
 function cacheAllFresh(cache, urls) {
   const stamp = Date.now();
   const total = urls.length;
@@ -535,12 +536,12 @@ function cacheAllFresh(cache, urls) {
     if (next >= urls.length) return Promise.resolve();
     return cacheFresh(cache, urls[next++], stamp).then(function () {
       done++;
-      if (done % 10 === 0 || done === total) tellProgress(done, total);
+      if (done % 5 === 0 || done === total) tellProgress(done, total);
       return runner();
     });
   }
   const runners = [];
-  for (let i = 0; i < 12; i++) runners.push(runner());
+  for (let i = 0; i < 20; i++) runners.push(runner());
   return Promise.all(runners);
 }
 
