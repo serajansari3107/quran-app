@@ -12,6 +12,7 @@
 
 ## v1.8 | 1-Nov-2026
 - Al-An'am Story Mode: 21 Parts, each with Story, Samjho and Lessons
+- Al-A'raf Story Mode: 24 Parts, each with Story, Samjho and Lessons
 
 ## v1.7 | 31-Oct-2026
 - An-Nisa Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
