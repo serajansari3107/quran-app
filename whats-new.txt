@@ -10,9 +10,10 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## v1.8 | 1-Nov-2026
+## v1.8 | 2-Nov-2026
 - Al-An'am Story Mode: 21 Parts, each with Story, Samjho and Lessons
 - Al-A'raf Story Mode: 24 Parts, each with Story, Samjho and Lessons
+- Al-Anfal Story Mode: 15 Parts, each with Story, Samjho, Lessons and hadith references
 
 ## v1.7 | 31-Oct-2026
 - An-Nisa Story Mode: 24 Parts, In Every Part there is Story, Samjho aur Lessons
