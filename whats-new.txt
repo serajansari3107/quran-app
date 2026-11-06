@@ -10,6 +10,9 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v1.9 | 6-Nov-2026
+- At-Tawbah Story Mode: 23 Parts, each with Story, Samjho, Lessons and hadith references
+
 ## v1.8 | 2-Nov-2026
 - Al-An'am Story Mode: 21 Parts, each with Story, Samjho and Lessons
 - Al-A'raf Story Mode: 24 Parts, each with Story, Samjho and Lessons
