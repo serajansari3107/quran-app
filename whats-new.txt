@@ -10,8 +10,9 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## v1.9 | 6-Nov-2026
+## v1.9 | 7-Nov-2026
 - At-Tawbah Story Mode: 23 Parts, each with Story, Samjho, Lessons and hadith references
+- Surah Yunus Quran Story Mode: added with 21 Parts covering all 109 ayat (Story | Samjho | Lessons).
 
 ## v1.8 | 2-Nov-2026
 - Al-An'am Story Mode: 21 Parts, each with Story, Samjho and Lessons
