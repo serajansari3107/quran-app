@@ -11,6 +11,7 @@
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
 ## v1.9 | 7-Nov-2026
+- Surah Hud Story mode: 24 Parts covering all 123 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
 - At-Tawbah Story Mode: 23 Parts, each with Story, Samjho, Lessons and hadith references
 - Surah Yunus Quran Story Mode: added with 21 Parts covering all 109 ayat (Story | Samjho | Lessons).
 
