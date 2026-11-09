@@ -10,6 +10,9 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v2.0 | 9-Nov-2026
+- Surah Ibrahim Story Mode: 13 Parts covering all 52 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
+
 ## v1.9 | 8-Nov-2026
 - Surah Ar-Ra'd Story mode: 14 Parts covering all 43 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
 - Surah Yusuf Story mode: 21 Parts covering all 111 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
