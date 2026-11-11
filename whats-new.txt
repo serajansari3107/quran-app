@@ -10,7 +10,8 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
-## v2.0 | 9-Nov-2026
+## v2.0 | 11-Nov-2026
+- Surah Al-Hijr Story Mode: 19 Parts covering all 99 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
 - Surah Ibrahim Story Mode: 13 Parts covering all 52 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
 
 ## v1.9 | 8-Nov-2026
