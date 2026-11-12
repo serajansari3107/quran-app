@@ -1,4 +1,4 @@
-const CACHE_NAME = "quran-app-v68";
+const CACHE_NAME = "quran-app-v69";
 
 const ASSETS_TO_CACHE = [
   "./",
@@ -27,6 +27,7 @@ const ASSETS_TO_CACHE = [
   "data/story/013-ar-rad.js",
   "data/story/014-ibrahim.js",
   "data/story/015-al-hijr.js",
+  "data/story/016-an-nahl.js",
   "manifest.json",
   "whats-new.txt",
   "adhan.min.js",
