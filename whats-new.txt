@@ -10,6 +10,9 @@
 #   - VERSION badla  ->  users ko "New Version Available" + uski changes dikhengi.
 #   - VERSION wahi, sirf text/changes badle  ->  "New Features Available" + wahi text dikhega.
 
+## v2.1 | 15-Nov-2026
+- Surah Al-Kahf Story Mode: 21 Parts covering all 110 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
+
 ## v2.0 | 14-Nov-2026
 - Surah Al-Isra Story Mode: 21 Parts covering all 111 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
 - Surah An-Nahl Story Mode: 21 Parts covering all 128 ayat (Story | Samjho | Lessons), including authentic hadith references from Sahih al-Bukhari and Sahih Muslim.
